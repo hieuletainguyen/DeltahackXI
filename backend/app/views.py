@@ -22,44 +22,36 @@ class ExecutePipelineView(APIView):
 class SignupView(APIView):
     def post(self, request):
         try:
-            # MongoClient inside the method to ensure it works during the post request
             client = MongoClient(
                 settings.MONGODB_URI,
-                serverSelectionTimeoutMS=5000  # Timeout after 5 seconds
+                serverSelectionTimeoutMS=5000
             )
             db = client.get_database('data')
             users_collection = db.user
 
             email = request.data.get('email')
             password = request.data.get('password')
+            user_type = request.data.get('userType', 'customer')  # Default to customer if not specified
 
             hashed_password = hashpw(password.encode('utf-8'), gensalt())
 
             if not email or not password:
                 return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Insert user data into MongoDB
+            # Insert user data into MongoDB with user type
             mongo_user = users_collection.insert_one({
                 'email': email,
                 'password': hashed_password,
+                'userType': user_type,  # Add user type to the document
                 'created_at': datetime.now()
             })
 
-            # # Create a Django user
-            # user = User.objects.create_user(
-            #     username=email,
-            #     email=email,
-            #     password=hashed_password,
-            #     mongodb_id=str(mongo_user.inserted_id)  # Save the MongoDB ID
-            # )
-
-            # token = jwt.encode({'user_id': str(user.id), 'exp': datetime.utcnow() + timedelta(days=1)},
-            #                    'your_secret_key', algorithm='HS256')
             print(email, str(mongo_user.inserted_id))
             return Response({
                 'user': {
                     'email': email,
-                    'id': str(mongo_user.inserted_id)
+                    'id': str(mongo_user.inserted_id),
+                    'userType': user_type  # Return user type in response
                 }
             })
 
