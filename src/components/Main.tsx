@@ -31,11 +31,11 @@ export default function Main() {
     const [isSignup, setIsSignup] = useState(false);
 
     useEffect(() => {
-        // if (localStorage.getItem('user')) {
-        //     const user = JSON.parse(localStorage.getItem('user') || '{}');
-        //     setUser(user);
-        //     setIsAuthenticated(true);
-        // }
+        if (localStorage.getItem('user')) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            setUser(user);
+            setIsAuthenticated(true);
+        }
     }, []);
 
     const handleLogin = async (user: object) => {

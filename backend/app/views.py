@@ -81,14 +81,12 @@ class LoginView(APIView):
             
             if not user_data:
                 return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-            print(user_data)
             # Return user data
             
-            token = jwt.encode({'user_id': str(user_data['_id']), 'exp': datetime.utcnow() + timedelta(days=1)},
-                               'your_secret_key', algorithm='HS256')
+            # token = jwt.encode({'user_id': str(user_data['_id']), 'exp': datetime.utcnow() + timedelta(days=1)},
+            #                    'your_secret_key', algorithm='HS256')
 
             return Response({
-                'token': token,
                 'user': {
                     'email': user_data['email'],
                     'id': str(user_data['_id']),

@@ -29,10 +29,10 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSignupClick }) => {
                 id: data.user.id
             });
 
-            // localStorage.setItem('user', JSON.stringify({
-            //     email: data.user.email,
-            //     id: data.user.id
-            // }));
+            localStorage.setItem('user', JSON.stringify({
+                email: data.user.email,
+                id: data.user.id
+            }));
 
             onLogin(data.user);
         } catch (err) {
