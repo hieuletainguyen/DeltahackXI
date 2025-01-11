@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../styles/panel.css';
-import '../styles/stationName.css';
+import StationName from './StationName';
 
 interface Station {
     id: number;
     name: string;
+    location: { lat: number; lng: number };
 }
 
 interface ChargingStationPanelProps {
@@ -26,25 +27,45 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
     batteryPercentage,
     setBatteryPercentage
 }) => {
+    const [animationClass, setAnimationClass] = useState('');
+
     const currentIndex = stations.findIndex(station => station.id === selectedStation.id);
 
     const handleNextStation = () => {
-        const nextIndex = (currentIndex + 1) % stations.length;
-        setSelectedStation(stations[nextIndex]);
+        setAnimationClass('slide-out-left');
+        setTimeout(() => {
+            const nextIndex = (currentIndex + 1) % stations.length;
+            setSelectedStation(stations[nextIndex]);
+            setAnimationClass('slide-in-right');
+        }, 200);
     };
 
     const handlePreviousStation = () => {
-        const prevIndex = (currentIndex - 1 + stations.length) % stations.length;
-        setSelectedStation(stations[prevIndex]);
+        setAnimationClass('slide-out-right');
+        setTimeout(() => {
+            const prevIndex = (currentIndex - 1 + stations.length) % stations.length;
+            setSelectedStation(stations[prevIndex]);
+            setAnimationClass('slide-in-left');
+        }, 200);
+    };
+
+    const handleStationNameChange = (newStation: Station) => {
+        setAnimationClass('slide-out-right');
+        setTimeout(() => {
+            setSelectedStation(newStation);
+            setAnimationClass('slide-in-left');
+        }, 200);
     };
 
     return (
         <div className="charging-panel">
-            <div className="flex-center">
-                <button className="arrow-button reverse" onClick={handlePreviousStation}></button>
-                <h3 className="station-name">{selectedStation.name}</h3>
-                <button className="arrow-button" onClick={handleNextStation}></button>
-            </div>
+            <StationName
+                station={selectedStation}
+                animationClass={animationClass}
+                onPrevious={handlePreviousStation}
+                onNext={handleNextStation}
+            />
+
             <div className="separator"></div>
             <input
                 type="range"
@@ -62,7 +83,8 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
             <div className="separator"></div>
             <button onClick={() => {
                 if (selectedStation) {
-                    alert(`Booking ${selectedStation.name} at ${selectedTime} hours with ${batteryPercentage}% battery`);
+                    handleStationNameChange({ id: 3, name: 'Station 3', location: { lat: 37.7949, lng: -122.3994 } });
+                    // alert(`Booking ${selectedStation.name} at ${selectedTime} hours with ${batteryPercentage}% battery`);
                 } else {
                     alert('Please select a charging station before continuing.');
                 }

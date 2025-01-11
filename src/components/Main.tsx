@@ -11,6 +11,7 @@ const dummyStations = [
 interface Station {
     id: number;
     name: string;
+    location: { lat: number; lng: number };
 }
 
 export default function Main() {
