@@ -1,0 +1,54 @@
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 15px 0;
+}
+
+.station-name {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: #007aff;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.arrow-button {
+    background-color: transparent;
+    color: #007aff;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 24px;
+    transition: color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    position: relative;
+}
+
+.arrow-button:hover {
+    color: #005bb5;
+}
+
+.arrow-button::before {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 8px solid currentColor;
+    position: absolute;
+    transform: translateX(-2px);
+}
+
+.arrow-button.reverse::before {
+    border-left: none;
+    border-right: 8px solid currentColor;
+    transform: translateX(2px);
+} 
