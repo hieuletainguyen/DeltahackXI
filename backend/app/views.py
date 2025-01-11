@@ -23,12 +23,13 @@ class ExecutePipelineView(APIView):
 class SignupView(APIView):
     def post(self, request):
         try:
+            print("sup")
             # MongoClient inside the method to ensure it works during the post request
             client = MongoClient(
                 settings.MONGODB_URI,
                 serverSelectionTimeoutMS=5000  # Timeout after 5 seconds
             )
-            db = client.get_database('users')
+            db = client.get_database('data')
             users_collection = db.users
 
             email = request.data.get('email')
@@ -46,22 +47,21 @@ class SignupView(APIView):
                 'created_at': datetime.now()
             })
 
-            # Create a Django user
-            user = User.objects.create_user(
-                username=email,
-                email=email,
-                password=hashed_password,
-                mongodb_id=str(mongo_user.inserted_id)  # Save the MongoDB ID
-            )
+            # # Create a Django user
+            # user = User.objects.create_user(
+            #     username=email,
+            #     email=email,
+            #     password=hashed_password,
+            #     mongodb_id=str(mongo_user.inserted_id)  # Save the MongoDB ID
+            # )
 
-            token = jwt.encode({'user_id': str(user.id), 'exp': datetime.utcnow() + timedelta(days=1)},
-                               'your_secret_key', algorithm='HS256')
+            # token = jwt.encode({'user_id': str(user.id), 'exp': datetime.utcnow() + timedelta(days=1)},
+            #                    'your_secret_key', algorithm='HS256')
 
             return Response({
-                'token': token,
                 'user': {
-                    'email': user.email,
-                    'id': user.id
+                    'email': mongo_user.email,
+                    'id': mongo_user.id
                 }
             })
 
