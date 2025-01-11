@@ -4,7 +4,6 @@ from rest_framework import status
 from .utils.utils import process_pipeline
 from pymongo import MongoClient
 from django.conf import settings
-from .models import User
 import jwt
 from datetime import datetime, timedelta
 from bcrypt import hashpw, gensalt
@@ -23,14 +22,13 @@ class ExecutePipelineView(APIView):
 class SignupView(APIView):
     def post(self, request):
         try:
-            print("sup")
             # MongoClient inside the method to ensure it works during the post request
             client = MongoClient(
                 settings.MONGODB_URI,
                 serverSelectionTimeoutMS=5000  # Timeout after 5 seconds
             )
             db = client.get_database('data')
-            users_collection = db.users
+            users_collection = db.user
 
             email = request.data.get('email')
             password = request.data.get('password')
@@ -57,11 +55,11 @@ class SignupView(APIView):
 
             # token = jwt.encode({'user_id': str(user.id), 'exp': datetime.utcnow() + timedelta(days=1)},
             #                    'your_secret_key', algorithm='HS256')
-
+            print(email, str(mongo_user.inserted_id))
             return Response({
                 'user': {
-                    'email': mongo_user.email,
-                    'id': mongo_user.id
+                    'email': email,
+                    'id': str(mongo_user.inserted_id)
                 }
             })
 
@@ -83,8 +81,8 @@ class LoginView(APIView):
                 settings.MONGODB_URI,
                 serverSelectionTimeoutMS=5000
             )
-            db = client.get_database('users')
-            users_collection = db.users
+            db = client.get_database('data')
+            users_collection = db.user
 
             # Find user in MongoDB
             user_data = users_collection.find_one({'email': email})
@@ -164,142 +162,3 @@ class AllUsersView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-class AllProjectsView(APIView):
-    def get(self, request):
-        try:
-            client = MongoClient(settings.MONGODB_URI)
-            db = client.get_database('projects')
-            projects_collection = db.projects
-
-            user_id = request.query_params.get('user_id')
-            if not user_id:
-                return Response({'error': 'User ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Find projects and convert cursor to list
-            projects = list(projects_collection.find({'user_id': user_id}))
-            
-            # Convert ObjectId to string and format the response
-            projects_list = [{
-                'id': str(project['_id']),
-                'name': project['project_name'],
-                'created_at': project['created_at'].isoformat(),
-                'is_public': project.get('is_public', False),
-                'collaborators': project.get('collaborators', [])
-            } for project in projects]
-
-            return Response({'projects': projects_list})
-
-        except Exception as e:
-            return Response(
-                {'error': f"Failed to fetch projects: {str(e)}"}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-class DeleteProjectView(APIView):
-    def delete(self, request):
-        try:
-            project_id = request.query_params.get('project_id')
-            if not project_id:
-                return Response({'error': 'Project ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-            client = MongoClient(settings.MONGODB_URI)
-            db = client.get_database('projects')
-            projects_collection = db.projects
-
-            result = projects_collection.delete_one({'_id': ObjectId(project_id)})
-            if result.deleted_count == 1:
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        except Exception as e:
-            return Response(
-                {'error': f"Failed to delete project: {str(e)}"}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-class OpenWhiteBoardView(APIView):
-    def post(self, request, project_id):
-        try:
-            user_id = request.data.get('user_id')
-            if not project_id or not user_id:
-                return Response({'error': 'User ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-            client = MongoClient(settings.MONGODB_URI)
-            db = client.get_database('projects')
-            projects_collection = db.projects
-
-            project = projects_collection.find_one({'_id': ObjectId(project_id)})
-           
-            if not project:
-                return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
-            
-            # Check if user has permission
-            permissions = (
-                user_id in [collaborator['id'] for collaborator in project.get('collaborators', [])] or 
-                user_id == project.get('user_id') or 
-                project.get('is_public', False)
-            )
-
-            if not permissions:
-                return Response({'error': 'No permission to access this project'}, status=status.HTTP_403_FORBIDDEN)
-            
-            project_client_data = {
-                'id': str(project['_id']),
-                'name': project['project_name'],
-                'created_at': project['created_at'].isoformat(),
-                'is_public': project.get('is_public', False),
-                'collaborators': project.get('collaborators', []),
-                'nodes': project.get('nodes', []),
-                'connections': project.get('connections', [])
-            }
-            return Response({'project': project_client_data, 'permissions': permissions})
-
-        except Exception as e:
-            print(f"Error in OpenWhiteBoardView: {str(e)}")
-            return Response(
-                {'error': f"Failed to open whiteboard: {str(e)}"}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-class UploadWhiteBoardView(APIView):
-    def post(self, request):
-        try:
-            client = MongoClient(settings.MONGODB_URI)
-            db = client.get_database('projects')
-            projects_collection = db.projects
-
-            project = request.data.get('project')
-            user_id = request.data.get('user_id')
-            
-            if not project or not user_id:
-                return Response({'error': 'Project and user ID are required'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Convert project data to MongoDB format
-            project_data = {
-                'project_name': project['name'],
-                'is_public': project.get('is_public', False),
-                'collaborators': project.get('collaborators', []),
-                'nodes': project.get('nodes', []),
-                'connections': project.get('connections', []),
-                'user_id': user_id,
-                'updated_at': datetime.now()
-            }
-            
-            # Update the project in MongoDB
-            result = projects_collection.update_one(
-                {'_id': ObjectId(project['id'])}, 
-                {'$set': project_data}
-            )
-
-            if result.modified_count == 0:
-                return Response({'error': 'Project not found or no changes made'}, status=status.HTTP_404_NOT_FOUND)
-
-            return Response({'message': 'Project saved successfully'}, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            print(f"Error in UploadWhiteBoardView: {str(e)}")
-            return Response(
-                {'error': f"Failed to save project: {str(e)}"}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
