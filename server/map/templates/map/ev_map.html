@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset=""UTF-8" />
+    <meta name=""viewport" content=""width=device-width, intiial-scale="1" />
+    <title> EV Charging Stations Locator </title>
+</head>
+<body>
+    <h1> Find Nearby EV Charging Stations </h1>
+    <script>
+        function sendLocationToServer(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            fetch('http://localhost:8000/api/ev-charging-stations/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' /*only use this is csrf protection enabled*/
+                },
+                body: JSON.stringify({latitude: lat, longitude: lng})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('EV Charging Stations: ', data);
+                //handle the data (e.g displau on map, list, etc)
+            })
+            .catch(error => console.error('Error: ', error));
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                sendLocationToServer,
+                (error) => console.error('Geolocation error:', error)
+            );
+        } else {
+            console.error("Geolocation is not supported by this browser");
+        }
+    </script>
+</body>
+</html>
