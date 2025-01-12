@@ -73,8 +73,8 @@ const searchNearbyRestaurants = async () => {
 
   const handleRestaurantSelect = (restaurant) => {
     const position = {
-      lat: restaurant.geometry.location.lat,
-      lng: restaurant.geometry.location.lng
+      lat: restaurant.station.location.lat,
+      lng: restaurant.station.location.lng
     };
     
     // If directions are showing, clear them and reset to original view
@@ -123,8 +123,8 @@ const searchNearbyRestaurants = async () => {
     setSelectedRoute({
       origin: originalCoordinates,
       destination: {
-        lat: restaurant.geometry.location.lat,
-        lng: restaurant.geometry.location.lng
+        lat: restaurant.station.location.lat,
+        lng: restaurant.station.location.lng
       }
     });
   };
@@ -190,10 +190,10 @@ const searchNearbyRestaurants = async () => {
                 <Marker
                   key={restaurant.place_id}
                   position={{
-                    lat: restaurant.geometry.location.lat,
-                    lng: restaurant.geometry.location.lng
+                    lat: restaurant.station.location.lat,
+                    lng: restaurant.station.location.lng
                   }}
-                  title={restaurant.name}
+                  title={restaurant.station.name}
                 />
               ))}
             </>
@@ -247,12 +247,12 @@ const searchNearbyRestaurants = async () => {
                 height: 'fit-content'
               }}
             >
-              <h4 style={{ margin: '0 0 5px 0' }}>{restaurant.name}</h4>
-              <p style={{ margin: '0 0 5px 0' }}>{restaurant.vicinity}</p>
-              <p style={{ margin: '0 0 5px 0' }}>{restaurant.duration.text}</p>
-              {/* <p style={{ margin: '0 0 5px 0' }}>Price per Watt: {restaurant.price.pricePerWatt}</p>
+              <h4 style={{ margin: '0 0 5px 0' }}>{restaurant.station.name}</h4>
+              {/* <p style={{ margin: '0 0 5px 0' }}>{restaurant.vicinity}</p> */}
+              {/* <p style={{ margin: '0 0 5px 0' }}>{restaurant.duration.text}</p> */}
+              {/* <p style={{ margin: '0 0 5px 0' }}>Price per Watt: {restaurant.price.pricePerWatt}</p> */}
               <p style={{ margin: '0 0 5px 0' }}>Start time: {restaurant.start_time}</p>
-              <p style={{ margin: '0 0 5px 0' }}>End time: {restaurant.end_time}</p> */}
+              <p style={{ margin: '0 0 5px 0' }}>End time: {restaurant.end_time}</p>
               Show Route
             </button>
           ))}

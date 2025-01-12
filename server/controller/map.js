@@ -58,8 +58,8 @@ export const getMap = async (req, res) => {
         const baseUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
         const params = new URLSearchParams({
             location:  `${lat},${lng}`,
-            radius: '1500',
-            type: 'restaurant',
+            radius: '2500',
+            type: 'gas_station',
             key: process.env.GOOGLE_MAPS_API_KEY
         });
 
@@ -69,7 +69,7 @@ export const getMap = async (req, res) => {
         const response = await fetch(url);
         const data = await response.json();
         const results = data.results;
-
+        console.log(results);
         const enrichedResults = await Promise.all(results.map(async (place) => {
             const distance = calculateDistance(
                 parseFloat(lat),
@@ -84,7 +84,20 @@ export const getMap = async (req, res) => {
             const timeMinutes = Math.round(timeHours * 60);
 
             // query the location of the provider
-            const provider_data = await client.db("data").collection("provider").findOne({ name: place.name });
+            var provider_data = await client.db("data").collection("provider").findOne({ name: place.name });
+            if (!provider_data) {
+                const newProviderData = {
+                    name: place.name,
+                    location: {
+                        lat: place.geometry.location.lat,
+                        lng: place.geometry.location.lng
+                    },
+                    visit: Object.fromEntries(Array.from({length: 23}, (_, i) => [`${i + 1}`, []])) // Initialize visit dictionary with keys 1-23 and empty lists as values
+                };
+
+                await client.db("data").collection("provider").insertOne(newProviderData);
+                provider_data = newProviderData;
+            }
             const plannedDateTime = new Date(planned_time);
             const userCount = provider_data.visit[`${plannedDateTime.getHours()}`]
             const { totalPrice, pricePerWatt, multiplier } = calculateDynamicPrice(

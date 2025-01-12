@@ -8,7 +8,12 @@ import WebcamPopup from './WebcamPopup';
 import ProviderSettings from './ProviderSettings';
 import CustomerSettings from './CustomerSettings';
 import { Station, ApiResponse } from '../types';
-import VoiceChat from './VoiceChat';
+// import VoiceChat from './VoiceChat';
+import executionData from '../../python/execution_response.json';
+
+interface ExecutionResponse {
+    execution_response: string;
+}
 
 interface TimeSelection {
     hours: number;
@@ -153,7 +158,13 @@ export default function Main() {
                 }
             });
         }
-        
+
+        const checkData = () => {
+            const response = (executionData as ExecutionResponse).execution_response;
+            setExecution(response);
+        };
+        const intervalId = setInterval(checkData, 5000);
+        return () => clearInterval(intervalId);
         
     }, [execution, stations]);
 
@@ -379,8 +390,8 @@ export default function Main() {
                     display: execution.includes('submit') ? 'block' : 'none'
                 }}
                 aria-label="Submit Form"
-            />
-            <VoiceChat />
+            /> 
+            {/* <VoiceChat /> */}
             <div className="h-1/2 relative overflow-hidden">
                 
                 <MapComponent 

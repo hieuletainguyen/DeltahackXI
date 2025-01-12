@@ -296,6 +296,10 @@ const NearBySearch: React.FC<NearbyRestaurantsProps> = ({
                     lng: restaurant.geometry.location.lng
                   }}
                   title={restaurant.name}
+                  onClick={() => handleRestaurantSelect(restaurant)}
+                  icon={{
+                    url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                  }}
                 />
               ))}
             </>
