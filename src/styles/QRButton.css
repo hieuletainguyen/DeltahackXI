@@ -1,0 +1,85 @@
+.info-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: white;
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #007AFF;
+    z-index: 10;
+}
+
+.info-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.popup-content {
+    background-color: white;
+    padding: 24px;
+    border-radius: 16px;
+    max-width: 90%;
+    width: 400px;
+    position: relative;
+    animation: slideUp 0.2s ease-out;
+}
+
+.popup-content h3 {
+    margin: 0 0 16px 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.popup-content p {
+    margin: 8px 0;
+    color: #666;
+    line-height: 1.5;
+}
+
+.close-button {
+    margin-top: 20px;
+    padding: 8px 16px;
+    background-color: #007AFF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.close-button:hover {
+    background-color: #0A84FF;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+} 
