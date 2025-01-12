@@ -65,16 +65,16 @@ def chat_with_gpt(user_input, start_time="12:00", end_time="12:10", initial_volt
     You might respond: "[Execution: setStation: station <name>], [Response: "Ok! Changing your station to station <name>.]"
 
     - If the user says: "Increase the voltage by <number>"
-    You might respond: "[Execution: setVoltage: initial voltage + <number>], [Response: Ok! Changing your voltage to station initial voltage + <number>.]"
+    You might respond: "[Execution: setVoltage: initial voltage + <number>], [Response: Ok! Changing your voltage to initial voltage + <number>.]"
     
     - If the user says: "Decrease the voltage by <number>"
-    You might respond: "[Execution: setVoltage: decrease voltage + <number>], [Response: Ok! Changing your voltage to station initial voltage + <number>.]"
+    You might respond: "[Execution: setVoltage: decrease voltage + <number>], [Response: Ok! Changing your voltage to initial voltage + <number>.]"
     
     Edge cases:
     -If the user is too vague with their answer and says the following:
     
     "Increase the voltage by a little bit"
-    You might respond: "[Execution: setVoltage: initial voltage + 5], [Response: Changing your voltage to station initial voltage + 5, is that okay?]"
+    You might respond: "[Execution: setVoltage: initial voltage + 5], [Response: Changing your voltage to initial voltage + 5, is that okay?]"
     
     "Change the station to Mac Charger"
     You might respond: "[Execution: setStation: McMaster Charger], [Response: Ok! Changing your station to station McMaster Charger.]"
@@ -137,7 +137,7 @@ def main():
 
     print("Execution Portion:", exec_part)
     engine = pyttsx3.init()
-    engine.say(chat_response)
+    engine.say(response_part)
     engine.runAndWait()
 
     
