@@ -83,7 +83,19 @@ export const getMap = async (req, res) => {
             const timeMinutes = Math.round(timeHours * 60);
 
             // query the location of the provider
-            const provider_data = await client.db("data").collection("provider").findOne({ name: place.name });
+            var provider_data = await client.db("data").collection("provider").findOne({ name: place.name });
+            if (!provider_data) {
+                const newProvider = await client.db("data").collection("provider").insertOne({
+                    name: place.name,
+                    location: {
+                        lat: place.geometry.location.lat,
+                        lng: place.geometry.location.lng
+                    }, 
+                    visit: Object.fromEntries(Array.from({length: 23}, (_, i) => [`${i}`, []]))
+                });
+                provider_data = newProvider;
+            }
+
             const plannedDateTime = new Date(planned_time);
             const userCount = provider_data.visit[`${plannedDateTime.getHours()}`]
             const { totalPrice, pricePerWatt, multiplier } = calculateDynamicPrice(

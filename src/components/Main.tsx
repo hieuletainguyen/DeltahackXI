@@ -30,7 +30,7 @@ export default function Main() {
         start: 40,
         target: 80
     });
-
+    const [bookedTime, setBookedTime] = useState<TimeSelection>({ hours: 1, minutes: 10 });
 
     const handleTimeChange = (newStartTime: TimeSelection | null, newEndTime: TimeSelection | null) => {
         const start = newStartTime || startTime;
