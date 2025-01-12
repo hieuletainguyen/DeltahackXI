@@ -6,6 +6,8 @@ import Signup from './Signup';
 import { useUser } from '../contexts/UserContext';
 import NearBySearch from './NearBySearch';
 import WebcamPopup from './WebcamPopup';
+import ProviderSettings from './ProviderSettings';
+import CustomerSettings from './CustomerSettings';
 import { Station, ApiResponse } from '../types';
 
 interface TimeSelection {
@@ -242,6 +244,20 @@ export default function Main() {
             setUser(user);
             setIsAuthenticated(true);
         }
+
+        // Add event listener for profile-option button
+        const profileButton = document.querySelector('.profile-option');
+        if (profileButton) {
+            profileButton.addEventListener('click', () => setShowProviderSettings(true));
+        }
+
+        // Cleanup listener
+        return () => {
+            const profileButton = document.querySelector('.profile-option');
+            if (profileButton) {
+                profileButton.removeEventListener('click', () => setShowProviderSettings(true));
+            }
+        };
     }, []);
 
     const handleLogin = async (user: object) => {
@@ -254,6 +270,8 @@ export default function Main() {
 
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [showWebcam, setShowWebcam] = useState(false);
+    const [showProviderSettings, setShowProviderSettings] = useState(false);
+    const [showCustomerSettings, setShowCustomerSettings] = useState(false);
 
     const handleSubmitForm = () => {
         console.log(panelAttributes);
@@ -300,6 +318,20 @@ export default function Main() {
         setVoltage(newVoltage);
     };
 
+    // Add this function to handle provider form submission
+    const handleProviderSubmit = (data: { chargerName: string; powerEfficiency: number; pricePerHour: number; location: string }) => {
+        console.log('Provider settings submitted:', data);
+        // Here you would typically send this data to your backend
+        setShowProviderSettings(false);
+    };
+
+    // Add this function to handle customer form submission
+    const handleCustomerSubmit = (data: { name: string; expectedBattery: number; carModel: string }) => {
+        console.log('Customer settings submitted:', data);
+        // Here you would typically send this data to your backend
+        setShowCustomerSettings(false);
+    };
+
     if (!isAuthenticated) {
         return isSignup ? (
             <Signup onSignup={handleSignup} onLoginClick={() => setIsSignup(false)} />
@@ -313,15 +345,38 @@ export default function Main() {
 
     return (
         <div className="h-screen flex flex-col">
-        
+            
             {showWebcam && (
                 <WebcamPopup onClose={() => setShowWebcam(false)} />
+            )}
+            {showProviderSettings && (
+                <ProviderSettings
+                    onClose={() => setShowProviderSettings(false)}
+                    onSubmit={handleProviderSubmit}
+                    setShowCustomerSettings={setShowCustomerSettings}
+                />
+            )}
+            {showCustomerSettings && (
+                <CustomerSettings 
+                    onClose={() => setShowCustomerSettings(false)}
+                    onSubmit={handleCustomerSubmit}
+                    setShowProviderSettings={setShowProviderSettings}
+                />
             )}
             <button
                 id="submitButton"
                 onClick={handleSubmitForm}
                 style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
                     background: 'transparent',
+                    border: 'none',
+                    pointerEvents: 'none',
+                    zIndex: 1500,
+                    display: execution.includes('submit') ? 'block' : 'none'
                 }}
                 aria-label="Submit Form"
             />
@@ -333,6 +388,8 @@ export default function Main() {
                     setIsAuthenticated={setIsAuthenticated} 
                     apiResponse={apiResponse}
                     setApiResponse={setApiResponse}
+                    setShowProviderSettings={setShowProviderSettings}
+                    setShowCustomerSettings={setShowCustomerSettings}
                 />
                 <button
                     onClick={() => {

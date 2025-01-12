@@ -26,12 +26,14 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSignupClick }) => {
 
             setUser({
                 email: data.user.email,
-                id: data.user.id
+                id: data.user.id,
+                isProvider: data.user.isProvider
             });
 
             localStorage.setItem('user', JSON.stringify({
                 email: data.user.email,
-                id: data.user.id
+                id: data.user.id,
+                isProvider: data.user.isProvider
             }));
 
             onLogin(data.user);

@@ -5,16 +5,27 @@ import '../styles/profileButton.css';
 
 interface ProfileButtonProps {
     setIsAuthenticated: (auth: boolean) => void;
+    setShowProviderSettings: (show: boolean) => void;
+    setShowCustomerSettings: (show: boolean) => void;
 }
 
-const ProfileButton = ({ setIsAuthenticated }: ProfileButtonProps) => {
+const ProfileButton = ({ setIsAuthenticated, setShowProviderSettings, setShowCustomerSettings }: ProfileButtonProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const { user, setUser } = useUser();
-    
+
     const handleLogout = () => {
         localStorage.removeItem('user');
         setUser(null);
         setIsAuthenticated(false);
+    };
+
+    const handleSettingsClick = () => {
+        if (user?.isProvider) {
+            setShowProviderSettings(true);
+        } else {
+            setShowCustomerSettings(true);
+        }
+        setIsOpen(false); // Close the profile menu after clicking
     };
 
     return (
@@ -35,7 +46,10 @@ const ProfileButton = ({ setIsAuthenticated }: ProfileButtonProps) => {
                         </div>
                         
                         <div className="profile-options">
-                            <button className="profile-option">
+                            <button 
+                                className="profile-option"
+                                onClick={handleSettingsClick}
+                            >
                                 <Settings size={18} />
                                 <span>Account Settings</span>
                             </button>
