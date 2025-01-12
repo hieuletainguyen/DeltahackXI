@@ -98,7 +98,9 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
   };
 
   useEffect(() => {
-    handleLocationAndSearch();
+    setTimeout(() => {
+      locationButtonRef.current?.click();
+    }, 1000);
   }, []);
 
   const searchNearbyRestaurants = async () => {
@@ -121,8 +123,8 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
       );
       
       const data = await response.json() as ApiResponse[];
-      setApiResponse(data);
       console.log("grr",data)
+      setApiResponse(data);
       
       // Convert API response to Restaurant format
       if (data.length >= 5) {
@@ -180,14 +182,6 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
     setIsMapLoaded(true);
   };
 
-  // Wait for both API and map to be loaded
-  useEffect(() => {
-    if (isApiLoaded && isMapLoaded && !isInitialized) {
-      setIsInitialized(true);
-      
-      locationButtonRef.current?.click();
-    }
-  }, [isApiLoaded, isMapLoaded, isInitialized]);
 
   const handleRestaurantSelect = (restaurant: Restaurant) => {
     const position = {

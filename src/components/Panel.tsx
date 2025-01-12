@@ -55,7 +55,7 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
             const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % stations.length;
             setSelectedStation(stations[nextIndex]);
             setAnimationClass('slide-in-right');
-        }, 200);
+        }, 100);
     };
 
     const handlePreviousStation = () => {
@@ -66,7 +66,7 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
             const prevIndex = currentIndex < 0 ? 0 : (currentIndex - 1 + stations.length) % stations.length;
             setSelectedStation(stations[prevIndex]);
             setAnimationClass('slide-in-left');
-        }, 200);
+        }, 100);
     };
 
     return (
