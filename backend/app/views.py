@@ -87,6 +87,7 @@ class LoginView(APIView):
             #                    'your_secret_key', algorithm='HS256')
 
             return Response({
+                'token': token,
                 'user': {
                     'email': user_data['email'],
                     'id': str(user_data['_id']),

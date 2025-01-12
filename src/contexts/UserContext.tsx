@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface User {
     email: string;
+    isProvider: boolean;
     id: string;
 }
 

@@ -12,6 +12,8 @@ interface MapComponentProps {
     setIsAuthenticated: (auth: boolean) => void;
     apiResponse: ApiResponse[];
     setApiResponse: React.Dispatch<React.SetStateAction<ApiResponse[]>>;
+    setShowProviderSettings: (show: boolean) => void;
+    setShowCustomerSettings: (show: boolean) => void;
 }
 
 const MapComponent: React.FC<MapComponentProps> = ({ 
@@ -20,7 +22,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
     onStationSelect, 
     setIsAuthenticated,
     apiResponse,
-    setApiResponse
+    setApiResponse,
+    setShowProviderSettings,
+    setShowCustomerSettings
 }) => {
     return (
         <div className="map-container h-full w-full">
@@ -31,7 +35,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 setApiResponse={setApiResponse}
             />
             <QRButton />
-            <ProfileButton setIsAuthenticated={setIsAuthenticated} />
+            <div>
+                <ProfileButton 
+                    setIsAuthenticated={setIsAuthenticated}
+                    setShowProviderSettings={setShowProviderSettings}
+                    setShowCustomerSettings={setShowCustomerSettings}
+                />
+            </div>
         </div>
     );
 };
