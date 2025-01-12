@@ -69,3 +69,42 @@ input[type="number"] {
         font-size: 20px;
     }
 }
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+@keyframes fadeOutUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-out-up {
+    animation: fadeOutUp 0.2s ease-out forwards;
+}
+
+.fade-in-down {
+    animation: fadeInDown 0.2s ease-out forwards;
+}

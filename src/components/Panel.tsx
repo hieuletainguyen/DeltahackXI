@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/panel.css';
 import StationName from './StationName';
+import TimePicker from './TimePicker';
 
 interface Station {
     id: number;
@@ -27,7 +28,16 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
     batteryPercentage,
     setBatteryPercentage
 }) => {
+    const [startHours, setStartHours] = useState(0);
+    const [startMinutes, setStartMinutes] = useState(0);
+    const [endHours, setEndHours] = useState(0);
+    const [endMinutes, setEndMinutes] = useState(0);
     const [animationClass, setAnimationClass] = useState('');
+
+    useEffect(() => {
+        const totalMinutes = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
+        setSelectedTime(totalMinutes);
+    }, [startHours, startMinutes, endHours, endMinutes]);
 
     const currentIndex = stations.findIndex(station => station.id === selectedStation.id);
 
@@ -49,14 +59,6 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
         }, 200);
     };
 
-    const handleStationNameChange = (newStation: Station) => {
-        setAnimationClass('slide-out-right');
-        setTimeout(() => {
-            setSelectedStation(newStation);
-            setAnimationClass('slide-in-left');
-        }, 200);
-    };
-
     return (
         <div className="charging-panel">
             <StationName
@@ -67,13 +69,18 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
             />
 
             <div className="separator"></div>
-            <input
-                type="range"
-                min="0"
-                max="24"
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(Number(e.target.value))}
+            
+            <TimePicker
+                startHours={startHours}
+                startMinutes={startMinutes}
+                endHours={endHours}
+                endMinutes={endMinutes}
+                setStartHours={setStartHours}
+                setStartMinutes={setStartMinutes}
+                setEndHours={setEndHours}
+                setEndMinutes={setEndMinutes}
             />
+
             <div className="separator"></div>
             <input
                 type="number"
@@ -83,8 +90,7 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
             <div className="separator"></div>
             <button onClick={() => {
                 if (selectedStation) {
-                    handleStationNameChange({ id: 3, name: 'Station 3', location: { lat: 37.7949, lng: -122.3994 } });
-                    // alert(`Booking ${selectedStation.name} at ${selectedTime} hours with ${batteryPercentage}% battery`);
+                    alert(`Booking ${selectedStation.name} from ${startHours}:${startMinutes.toString().padStart(2, '0')} to ${endHours}:${endMinutes.toString().padStart(2, '0')} with ${batteryPercentage}% battery`);
                 } else {
                     alert('Please select a charging station before continuing.');
                 }
