@@ -123,6 +123,7 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
       );
       
       const data = await response.json();
+      console.log('API Response:', data);
       
       // Check if response contains error
       if (data.error) {
@@ -159,13 +160,16 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
         }));
         setStations(newStations);
       }
-      
     } catch (error) {
-      console.error('Error fetching restaurants:', error);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log('Restaurants:', restaurants);
+  }, [restaurants]);
 
   const handleLatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCoordinates(prev => ({
