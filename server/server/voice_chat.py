@@ -1,8 +1,9 @@
 import openai
 import speech_recognition as sr
 import pyttsx3
+import os
 
-openai.api_key = "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"
+openai.api_key = os.getenv("OPENAI_API_KEY")
 def record_audio_to_file(filename="input.wav"):
     """ record audio from the microphone and save it to a WAV file"""
     try:

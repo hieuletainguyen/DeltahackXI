@@ -1,7 +1,36 @@
 import dotenv from 'dotenv';
-import { calculateDynamicPrice } from './price.js';
-dotenv.config();
 import client from '../database/mongodb.js';
+
+dotenv.config();
+
+const getHourlyMultiplier = (plannedTime, stationId, threshold = 50, surgeMultiplier = 1.1) => {
+    // Dummy implementation
+    return 1.0;
+};
+
+
+const calculateDynamicPrice = (watt, usageCount, plannedTime, stationId, basePricePerWatt = 0.20) => {
+    const LESS_VISITED_THRESHOLD = 10;
+    const MORE_VISITED_THRESHOLD = 50;
+
+    let multiplier = 1.0;
+
+    if (usageCount < LESS_VISITED_THRESHOLD) {
+        multiplier = 0.9;
+    } else if (usageCount < MORE_VISITED_THRESHOLD) {
+        multiplier = 1.0;
+    } else {
+        multiplier = 1.2;
+    }
+
+    const timeBasedMultiplier = getHourlyMultiplier(plannedTime, stationId);
+    multiplier *= timeBasedMultiplier;
+
+    const pricePerWatt = basePricePerWatt * multiplier;
+    const totalPrice = watt * pricePerWatt;
+
+    return { totalPrice, pricePerWatt, multiplier };
+};
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Earth's radius in kilometers
@@ -67,6 +96,7 @@ export const getMap = async (req, res) => {
 
             return {
                 ...place,
+                stationId: provider_data._id,
                 distance: {
                     value: distance,
                     text: `${distance.toFixed(1)} km`
@@ -95,4 +125,36 @@ export const getMap = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+}
+
+
+export const confirmBooking = async (req, res) => {
+    const { stationId, stationName, username, planned_time } = req.body;
+    await client.connect();
+    if (!stationId || !stationName || !username || !planned_time) {
+        return res.status(400).json({ error: "Invalid request" });
+    }
+
+    const provider_data = await client.db("data").collection("provider").findOne({ _id: stationId });
+    if (!provider_data) {
+        return res.status(400).json({ error: "Invalid request" });
+    }
+
+    const station_data_queue = await client.db("data").collection("queue").findOne({ stationId: stationId });
+    if (!station_data_queue) {
+        return res.status(400).json({ error: "Cannot find station in queue" });
+    }
+
+    const plannedDateTime = new Date(planned_time);
+    const booking = station_data_queue.queue;
+    if (booking[`${plannedDateTime.getHours()}`].length >= 2) {
+        return res.status(400).json({ error: "Station is full" });
+    }
+    booking[`${plannedDateTime.getHours()}`].push({
+        username: username,
+        planned_time: planned_time
+    });
+    await client.db("data").collection("queue").updateOne({ stationId: stationId }, { $set: { queue: booking } });
+
+    res.json({ success: true });
 }
