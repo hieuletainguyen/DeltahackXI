@@ -1,17 +1,22 @@
 .voltage-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 0;
+    width: 100%;
 }
 
 .voltage-icon {
-    color: #6366F1;
+    color: #FFB800;
     animation: pulse 2s infinite;
+    margin-left: 0;
 }
 
 .voltage-number-container {
-    width: 80px;
-    height: 36px;
+    margin-left: 5px;
+    width: 110px;
+    height: 60px;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -20,13 +25,14 @@
 }
 
 .voltage-number {
-    font-size: 28px;
+    font-size: 35px;
     position: absolute;
     font-weight: bold;
-    background: linear-gradient(45deg, #6366F1, #8B5CF6);
+    background: linear-gradient(45deg, #FFB800, #FF8A00);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    text-shadow: 0 0 10px rgba(255, 184, 0, 0.4);
+
 }
 
 .voltage-number.slide-up-out {
@@ -91,15 +97,18 @@
 
 @keyframes pulse {
     0% {
-        transform: scale(1);
+        transform: scale(1.7);
         opacity: 1;
+        color: #FFB800;
     }
     50% {
-        transform: scale(1.1);
+        transform: scale(2.0);
         opacity: 0.8;
+        color: #FF8A00;
     }
     100% {
-        transform: scale(1);
+        transform: scale(1.7);
         opacity: 1;
+        color: #FFB800;
     }
 } 

@@ -124,6 +124,7 @@ input[type="number"] {
     display: flex;
     width: 100%;
     padding: 0 15px;
+    height: 50%;
     gap: 15px;
     position: relative;
     flex: 1;
@@ -144,6 +145,7 @@ input[type="number"] {
     flex: 2;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 15px;
 }
 
@@ -156,11 +158,23 @@ input[type="number"] {
 }
 
 .voltage-section {
-    margin-top: 10px;
+    width: 100%;
+    padding: 15px 0;
+    position: relative;
+}
+
+.voltage-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 1px;
+    background-color: #e0e0e0;
 }
 
 .checkout-button {
-    background-color: #6366F1;
+    background-color: #007AFF;
     color: white;
     margin-top: 10px;
     margin-left: 10px;
@@ -176,6 +190,6 @@ input[type="number"] {
 }
 
 .checkout-button:hover {
-    background-color: #4F46E5;
+    background-color: #0A84FF;
     transform: translateX(5px);
 }
