@@ -273,6 +273,7 @@ const NearbyRestaurants = () => {
               <p style={{ margin: '0 0 5px 0' }}>
                 <strong>End time:</strong> {restaurant.end_time}
               </p> 
+              <p style={{ margin: '0 0 5px 0' }}>Booked times: {restaurant.bookedTimes.map(time => `${time.hour}:00 - ${time.hour + 1}:00`).join(', ')}</p>
             </button>
           ))}
         </div>

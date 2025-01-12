@@ -95,8 +95,30 @@ export const getMap = async (req, res) => {
                 provider_data = newProviderData;
             }
 
+            //query the booking time of the station if not found, create a new one
+            var station_data_queue = await client.db("data").collection("queue").findOne({ stationName: provider_data.name });
+            if (!station_data_queue) {
+                const newStationQueue = {
+                    stationName: provider_data.name,
+                    queue: Object.fromEntries(Array.from({ length: 24 }, (_, i) => [`${i}`, []]))
+                };
+                await client.db("data").collection("queue").insertOne(newStationQueue);
+                station_data_queue = newStationQueue;
+            }
+
+            const bookedTimes = [];
+            for (let hour in station_data_queue.queue) {
+                if (station_data_queue.queue[hour].length > 0) {
+                    bookedTimes.push({
+                        hour: parseInt(hour),
+                        bookings: station_data_queue.queue[hour]
+                    });
+                }
+            }
+            console.log(bookedTimes);
+
             const plannedDateTime = new Date(planned_time);
-            const userCount = provider_data.visit[`${plannedDateTime.getHours()}`]
+            const userCount = station_data_queue.queue[`${plannedDateTime.getHours()}`].length;
             const { totalPrice, pricePerWatt, multiplier } = calculateDynamicPrice(
                 45.3,
                 userCount,
@@ -121,7 +143,8 @@ export const getMap = async (req, res) => {
                     totalPrice,
                     pricePerWatt,
                     multiplier
-                }
+                },
+                bookedTimes: bookedTimes
             };
         }));
 
@@ -139,32 +162,33 @@ export const getMap = async (req, res) => {
 
 
 export const confirmBooking = async (req, res) => {
-    const { stationId, stationName, username, planned_time } = req.body;
+    const { stationName, email, planned_time } = req.body;
+    console.log(req.body);
     await client.connect();
-    if (!stationId || !stationName || !username || !planned_time) {
+    if (!stationName || !email || !planned_time) {
         return res.status(400).json({ error: "Invalid request" });
     }
 
-    const provider_data = await client.db("data").collection("provider").findOne({ _id: stationId });
+    const provider_data = await client.db("data").collection("provider").findOne({ name: stationName });
     if (!provider_data) {
         return res.status(400).json({ error: "Invalid request" });
     }
 
-    const station_data_queue = await client.db("data").collection("queue").findOne({ stationId: stationId });
+    const station_data_queue = await client.db("data").collection("queue").findOne({ stationName: stationName });
     if (!station_data_queue) {
         return res.status(400).json({ error: "Cannot find station in queue" });
     }
 
     const plannedDateTime = new Date(planned_time);
     const booking = station_data_queue.queue;
-    if (booking[`${plannedDateTime.getHours()}`].length >= 2) {
+    if (booking[`${plannedDateTime.getHours()}`].length >= 1) {
         return res.status(400).json({ error: "Station is full" });
     }
     booking[`${plannedDateTime.getHours()}`].push({
-        username: username,
-        planned_time: planned_time
+        planned_time: planned_time,
+        email: email
     });
-    await client.db("data").collection("queue").updateOne({ stationId: stationId }, { $set: { queue: booking } });
+    await client.db("data").collection("queue").updateOne({ stationName: stationName }, { $set: { queue: booking } });
 
     res.json({ success: true });
 }
