@@ -41,6 +41,30 @@ export default function Main() {
         const start = newStartTime || startTime;
         const end = newEndTime || endTime;
         
+        // If start time changes, adjust end time by the same amount
+        if (newStartTime) {
+            const hourDiff = newStartTime.hours - startTime.hours;
+            const minuteDiff = newStartTime.minutes - startTime.minutes;
+            
+            const newEnd = {
+                hours: (endTime.hours + hourDiff + 24) % 24,
+                minutes: endTime.minutes + minuteDiff
+            };
+            
+            // Handle minute overflow/underflow
+            if (newEnd.minutes >= 60) {
+                newEnd.hours = (newEnd.hours + 1) % 24;
+                newEnd.minutes -= 60;
+            } else if (newEnd.minutes < 0) {
+                newEnd.hours = (newEnd.hours - 1 + 24) % 24;
+                newEnd.minutes += 60;
+            }
+            
+            setStartTime(start);
+            setEndTime(newEnd);
+            return;
+        }
+        
         // Validate that end time is always after start time
         const startMinutes = start.hours * 60 + start.minutes;
         const endMinutes = end.hours * 60 + end.minutes;
@@ -57,17 +81,15 @@ export default function Main() {
                 const newVoltageDiff = Math.round(voltageDiff * (newTimeDiff / oldTimeDiff));
                 const newTargetVoltage = voltage.start + newVoltageDiff;
                 
-                if (newTargetVoltage <= 100 && newTargetVoltage > voltage.start) {
+                if (newTargetVoltage > voltage.start) {
                     setVoltage(prev => ({
                         ...prev,
                         target: newTargetVoltage
                     }));
                 }
             }
+            setEndTime(end);
         }
-
-        if (newStartTime) setStartTime(newStartTime);
-        if (newEndTime) setEndTime(newEndTime);
     };
 
     const [panelAttributes, setPanelAttributes] = useState({

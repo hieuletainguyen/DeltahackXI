@@ -54,10 +54,10 @@ const TimePicker: React.FC<TimePickerProps> = ({
             
             if (key === 'endMinutes') {
                 if (newValue >= 60) {
-                    newValue = newValue % 60;
+                    newValue = 0;
                     setEndTime({
                         hours: endTime.hours + 1 > 23 ? 0 : endTime.hours + 1,
-                        minutes: newValue
+                        minutes: 0
                     });
                     setIsIncrementing(isIncrement);
                     setAnimatingNumber(key);
@@ -66,10 +66,10 @@ const TimePicker: React.FC<TimePickerProps> = ({
                     }, 200);
                     return;
                 } else if (newValue < 0) {
-                    newValue = newValue + 60;
+                    newValue = 50;
                     setEndTime({
                         hours: endTime.hours - 1 < 0 ? 23 : endTime.hours - 1,
-                        minutes: newValue
+                        minutes: 50
                     });
                     setIsIncrementing(isIncrement);
                     setAnimatingNumber(key);
@@ -151,8 +151,8 @@ const TimePicker: React.FC<TimePickerProps> = ({
         if (isMinutes) {
             if (animKey === 'endMinutes') {
                 nextValue = isIncrementing ? 
-                    (value + 10 >= 60 ? value + 10 - 60 : value + 10) : 
-                    (value - 10 < 0 ? value - 10 + 60 : value - 10);
+                    (value + 10 >= 60 ? 0 : value + 10) : 
+                    (value - 10 < 0 ? 50 : value - 10);
             } else {
                 nextValue = isIncrementing ? 
                     ((value + 10) % 60) : 

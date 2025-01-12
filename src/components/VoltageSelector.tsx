@@ -10,84 +10,48 @@ interface VoltageSelection {
 interface VoltageSelectorProps {
     voltage: VoltageSelection;
     setVoltage: (voltage: VoltageSelection) => void;
-    onVoltageChange?: (newVoltage: VoltageSelection) => void;
 }
 
-const VoltageSelector: React.FC<VoltageSelectorProps> = ({ 
-    voltage, 
-    setVoltage,
-    onVoltageChange 
-}) => {
+const VoltageSelector: React.FC<VoltageSelectorProps> = ({ voltage, setVoltage }) => {
     const [animatingNumber, setAnimatingNumber] = useState<string | null>(null);
     const [isIncrementing, setIsIncrementing] = useState(true);
 
-    const handleChange = (
-        value: number,
-        isStart: boolean,
-        isIncrement: boolean
-    ) => {
-        let newValue = isIncrement ? value + 10 : value - 10;
-        if (newValue > 100) newValue = 0;
-        if (newValue < 0) newValue = 100;
+    const handleVoltageChange = (isStart: boolean, isIncrement: boolean) => {
+        const currentValue = isStart ? voltage.start : voltage.target;
+        let newValue = isIncrement ? currentValue + 10 : currentValue - 10;
 
-        // Validate voltage ranges
-        if (isStart) {
-            if (newValue >= voltage.target) {
-                return;
-            }
-        } else {
-            if (newValue <= voltage.start) {
-                return;
-            }
-        }
+        // Only prevent negative values
+        if (newValue < 0) newValue = 0;
+
+        // Ensure start voltage < target voltage
+        if (isStart && newValue >= voltage.target) return;
+        if (!isStart && newValue <= voltage.start) return;
 
         setIsIncrementing(isIncrement);
         setAnimatingNumber(isStart ? 'start' : 'target');
-        
-        const newVoltage = {
-            ...voltage,
-            [isStart ? 'start' : 'target']: newValue
-        };
 
         setTimeout(() => {
-            setVoltage(newVoltage);
-            onVoltageChange?.(newVoltage);
+            setVoltage({ ...voltage, [isStart ? 'start' : 'target']: newValue });
             setAnimatingNumber(null);
         }, 200);
     };
 
-    const handleWheel = (event: React.WheelEvent, isStart: boolean) => {
-        const isScrollingUp = event.deltaY < 0;
-        handleChange(
-            isStart ? voltage.start : voltage.target,
-            isStart,
-            isScrollingUp
-        );
-    };
-
-    const VoltageNumber = ({ value, isStart }: { value: number; isStart: boolean }) => {
-        const isAnimating = animatingNumber === (isStart ? 'start' : 'target');
-        const nextValue = isIncrementing ? 
-            (value + 10 > 100 ? 0 : value + 10) : 
-            (value - 10 < 0 ? 100 : value - 10);
-    
-
-        return (
-            <div 
-                className="voltage-number-container"
-                onWheel={(e) => handleWheel(e, isStart)}
-            >
-                <span className={`voltage-number ${isAnimating ? (isIncrementing ? 'slide-up-out' : 'slide-down-out') : ''}`}>
-                    {value}%
+    const VoltageNumber = ({ value, isStart }: { value: number; isStart: boolean }) => (
+        <div 
+            className="voltage-number-container"
+            onWheel={(e) => handleVoltageChange(isStart, e.deltaY < 0)}
+        >
+            <span className={`voltage-number ${animatingNumber === (isStart ? 'start' : 'target') ? 
+                (isIncrementing ? 'slide-up-out' : 'slide-down-out') : ''}`}>
+                {value}%
+            </span>
+            {animatingNumber === (isStart ? 'start' : 'target') && (
+                <span className={`voltage-number ${isIncrementing ? 'slide-up-in' : 'slide-down-in'}`}>
+                    {isIncrementing ? value + 10 : Math.max(value - 10, 0)}%
                 </span>
-                {isAnimating && (
-                    <span className={`voltage-number ${isIncrementing ? 'slide-up-in' : 'slide-down-in'}`}>
-                        {nextValue}%
-                    </span>
-                )}
-            </div>
-        );
-    };
+            )}
+        </div>
+    );
 
     return (
         <div className="voltage-container">
@@ -95,7 +59,7 @@ const VoltageSelector: React.FC<VoltageSelectorProps> = ({
             <div className="voltage-display">
                 <VoltageNumber value={voltage.start} isStart={true} />
                 <span className="voltage-arrow">→</span>
-                <VoltageNumber value={voltage.target} isStart={false} />
+                <VoltageNumber value={voltage.target > 100 ? 100 : voltage.target} isStart={false} />
             </div>
         </div>
     );
