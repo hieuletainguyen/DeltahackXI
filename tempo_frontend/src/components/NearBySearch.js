@@ -250,9 +250,9 @@ const searchNearbyRestaurants = async () => {
               <h4 style={{ margin: '0 0 5px 0' }}>{restaurant.name}</h4>
               <p style={{ margin: '0 0 5px 0' }}>{restaurant.vicinity}</p>
               <p style={{ margin: '0 0 5px 0' }}>{restaurant.duration.text}</p>
-              <p style={{ margin: '0 0 5px 0' }}>Price per Watt: {restaurant.price.pricePerWatt}</p>
+              {/* <p style={{ margin: '0 0 5px 0' }}>Price per Watt: {restaurant.price.pricePerWatt}</p>
               <p style={{ margin: '0 0 5px 0' }}>Start time: {restaurant.start_time}</p>
-              <p style={{ margin: '0 0 5px 0' }}>End time: {restaurant.end_time}</p>
+              <p style={{ margin: '0 0 5px 0' }}>End time: {restaurant.end_time}</p> */}
               Show Route
             </button>
           ))}
