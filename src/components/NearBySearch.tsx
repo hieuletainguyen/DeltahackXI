@@ -31,7 +31,7 @@ interface NearbyRestaurantsProps {
   setApiResponse: React.Dispatch<React.SetStateAction<ApiResponse[]>>;
 }
 
-const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({ 
+const NearBySearch: React.FC<NearbyRestaurantsProps> = ({ 
   stations, 
   setStations, 
   apiResponse, 
@@ -39,8 +39,8 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
 }) => {
   const locationButtonRef = useRef<HTMLButtonElement>(null);
   const [coordinates, setCoordinates] = useState<Coordinates>({
-    lat: 37.7749,
-    lng: -122.4194
+    lat: 43.2653284,
+    lng: -79.9185128
   });
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -50,8 +50,8 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
   const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null);
   const [requestMade, setRequestMade] = useState<boolean>(false);
   const [originalCoordinates, setOriginalCoordinates] = useState<Coordinates>({
-    lat: 37.7749,
-    lng: -122.4194
+    lat: 43.2653284,
+    lng: -79.9185128
   });
   const [isApiLoaded, setIsApiLoaded] = useState<boolean>(false);
   const [isMapLoaded, setIsMapLoaded] = useState<boolean>(false);
@@ -68,10 +68,12 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
         setLoading(true);
         navigator.geolocation.getCurrentPosition(
           (position: GeolocationPosition) => {
-            setCoordinates({
+            const currentLocation = {
               lat: position.coords.latitude,
               lng: position.coords.longitude
-            });
+            };
+            setCoordinates(currentLocation);
+            setOriginalCoordinates(currentLocation);
             setLoading(false);
             resolve();
           },
@@ -123,6 +125,7 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
       );
       
       const data = await response.json();
+      console.log('API Response:', data);
       
       // Check if response contains error
       if (data.error) {
@@ -159,13 +162,16 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
         }));
         setStations(newStations);
       }
-      
     } catch (error) {
-      console.error('Error fetching restaurants:', error);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log('Restaurants:', restaurants);
+  }, [restaurants]);
 
   const handleLatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCoordinates(prev => ({
@@ -276,10 +282,11 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
           {!directionsResponse && (
             <>
               <Marker
-                position={coordinates}
+                position={originalCoordinates}
                 icon={{
                   url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
                 }}
+                onLoad={() => console.log('Marker Loaded')}
               />
               {restaurants.map((restaurant) => (
                 <Marker
@@ -361,4 +368,4 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
   );
 };
 
-export default NearbyRestaurants;
+export default NearBySearch;

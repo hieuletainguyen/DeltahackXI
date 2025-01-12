@@ -4,8 +4,8 @@ import ChargingStationPanel from './Panel';
 import Login from './Login';
 import Signup from './Signup';
 import { useUser } from '../contexts/UserContext';
-import NearBySearch from './NearBySearch';
 import { Station, ApiResponse } from '../types';
+import VoiceChat from './VoiceChat';
 
 interface TimeSelection {
     hours: number;
@@ -243,7 +243,9 @@ export default function Main() {
 
     return (
         <div className="h-screen flex flex-col">
+            <VoiceChat />
             <div className="h-1/2 relative overflow-hidden">
+                
                 <MapComponent 
                     stations={stations} 
                     setStations={setStations}

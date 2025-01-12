@@ -51,6 +51,7 @@ function toRad(value) {
 export const getMap = async (req, res) => {
     try {
         const { lat, lng } = req.query;
+        console.log(lat, lng);
         const { current_battery, planned_time, desired_battery } = req.body;
         
         // Construct URL with query parameters
@@ -113,16 +114,16 @@ export const getMap = async (req, res) => {
                 }
             }
             // ================================
-
+            
             return {
                 // ...place,
                 // ===============Modified=================
                 station: {
                     id: provider_data._id,
-                    name: provider_data.name,
+                    name: place.name,
                     location: {
-                        lat: provider_data.location.lat,
-                        lng: provider_data.location.lng
+                        lat: place.geometry.location.lat,
+                        lng: place.geometry.location.lng
                     },
                     pricePerWatt: pricePerWatt
                 },
@@ -188,4 +189,13 @@ export const confirmBooking = async (req, res) => {
     await client.db("data").collection("queue").updateOne({ stationId: stationId }, { $set: { queue: booking } });
 
     res.json({ success: true });
+}
+
+export const execution_return = async (req, res) => {
+    try {
+        const execution_response = JSON.parse(fs.readFileSync('../../python/execution_response.json', 'utf8'));
+        res.json({ success: true, response: execution_response });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 }

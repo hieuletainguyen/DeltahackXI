@@ -2,8 +2,15 @@ import openai
 import speech_recognition as sr
 import pyttsx3
 import os
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
+import keyboard
+import time
+from flask import Flask, jsonify
+from flask_cors import CORS  # You'll need to install this: pip install flask-cors
+import json
+global execution_response
+execution_response = "123"
+# openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = "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"
 def record_audio_to_file(filename="input.wav"):
     """ record audio from the microphone and save it to a WAV file"""
     try:
@@ -31,12 +38,6 @@ def transcribe_audio(filename):
         with open(filename, "rb") as audio_file:
             transcript = openai.Audio.transcribe("whisper-1", audio_file)
         return transcript["text"]
-    except openai.error.RateLimitError as e:
-        print("Rate limit exceeded. Please check your OpenAI API quota and billing details.")
-        raise
-    except openai.error.OpenAIError as e:
-        print(f"OpenAI API error: {e}")
-        raise
     except Exception as e:
         print(f"Error transcribing audio: {e}")
         raise
@@ -97,50 +98,132 @@ def chat_with_gpt(user_input, start_time="12:00", end_time="12:10", initial_volt
             messages=messages
         )
         return response["choices"][0]["message"]["content"]
-    except openai.error.RateLimitError as e:
-        print("Rate limit exceeded. Please check your OpenAI API quota and billing details.")
-        raise
-    except openai.error.OpenAIError as e:
-        print(f"OpenAI API error: {e}")
-        raise
     except Exception as e:
         print(f"Error in chat completion: {e}")
         raise
 
 
-
 def main():
-
-    # Step 1: Record audio and save to file
-    audio_filename = record_audio_to_file()
-        
-    # Step 2: Transcribe audio
-    print("Transcribing audio...")
-    transcribed_text = transcribe_audio(audio_filename)
-    print("You said:", transcribed_text)
-        
-
-        
-    # Step 3: Send the transcribed text to ChatGPT
-    print("Sending to ChatGPT...")
-    chat_response = chat_with_gpt(transcribed_text)
-    print("chat_response:", chat_response)
-        
-    # Step 4: Parse the response
-    exec_part = chat_response  # Default if format not matched
-    response_part = ""
-    delimiter = "], [Response:"
-    if delimiter in chat_response:
-        parts = chat_response.split(delimiter, 1)
-        exec_part = parts[0] + "]"  # Add back the closing bracket for execution part
-        response_part = "[Response:" + parts[1]  # Reconstruct the response part
-        
-
-    print("Execution Portion:", exec_part)
     engine = pyttsx3.init()
-    engine.say(chat_response)
-    engine.runAndWait()
+    print("Voice dictation ready. Press SPACE to record. Press ESC to end the program")
+    
+    while True:
+        # Check for ESC key first
+        if keyboard.is_pressed("esc"):
+            print("Exiting voice dictation")
+            break
+            
+        # Check for space bar press
+        if keyboard.is_pressed("space"):
+            # simple debounce: wait for user to release space
+            time.sleep(0.2)
+            while keyboard.is_pressed("space"):
+                pass  # keep waiting until they let go of space
+            
+            #step 1 record audio and save to file
+            audio_filename = record_audio_to_file()
+            
+            #step 2: transcribe audio
+            print("Transcribing audio...")
+            try:
+                transcribed_text = transcribe_audio(audio_filename)
+                print("You said:", transcribed_text)
+            except Exception as e:
+                print("Transcription failed. Please try again")
+                continue
+            #check if user said "quit"
+            if transcribed_text.strip().lower() == "quit":
+                print("Exiting voice dictation")
+                break
+            
+            #step 3: send transcrbed to chatgpt
+            print("Sending to ChatGPT...")
+            try:
+                chat_response = chat_with_gpt(transcribed_text)
+                print("chat_response:", chat_response)
+            except Exception as e:
+                print("ChatGPT interaction failed. Please try again.")
+                continue
+            
+            #step4 parse response
+            exec_part = chat_response
+            
+            delimeter = "], [Response:"
+            global execution_response
+            response_part = ""
+            if delimeter in chat_response:
+                parts = chat_response.split(delimeter, 1)
+                exec_part = parts[0] + "]"
+                response_part = "[Response:" + parts[1]
+                print("Execution Portion:", exec_part)
+                print("Response Portion:", response_part)
+                execution_response = exec_part
+                
+
+                try:
+                    with open('execution_response.json', 'w') as json_file:
+                        json.dump({"execution_response": exec_part}, json_file)
+                    print("Execution response saved to execution_response.json")
+                except Exception as e:
+                    print(f"Error saving execution response to JSON file: {e}")
+            #speak the "response" portion
+            engine.say(response_part if response_part else chat_response)
+            engine.runAndWait()
 
     
 if __name__ == "__main__":
     main()       
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route('/execution_return', methods=['GET'])
+def execution_return():
+    return jsonify({
+        "success": True,
+        "response": execution_response
+    })
+
+@app.route('/start-voice-chat', methods=['POST'])
+def start_voice_chat():
+    try:
+        engine = pyttsx3.init()
+        
+        # Record and process single voice input
+        audio_filename = record_audio_to_file()
+        
+        print("Transcribing audio...")
+        transcribed_text = transcribe_audio(audio_filename)
+        print("You said:", transcribed_text)
+        
+        print("Sending to ChatGPT...")
+        chat_response = chat_with_gpt(transcribed_text)
+        print("chat_response:", chat_response)
+        
+        # Parse response
+        exec_part = chat_response
+        response_part = ""
+        delimeter = "], [Response:"
+        if delimeter in chat_response:
+            parts = chat_response.split(delimeter, 1)
+            exec_part = parts[0] + "]"
+            response_part = "[Response:" + parts[1]
+        # Save the execution response to a JSON file
+        
+        # Speak the response
+        engine.say(response_part if response_part else chat_response)
+        engine.runAndWait()
+        
+        return jsonify({
+            "success": True,
+            "transcribed_text": transcribed_text,
+            "response": chat_response
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=8989, debug=True)       

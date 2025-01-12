@@ -1,8 +1,9 @@
 import React from 'react';
 import QRButton from './QRButton';
 import ProfileButton from './ProfileButton';
-import NearBySearch from './NearBySearch';
+import NearByRestaurant from './NearBySearch';
 import { Station, ApiResponse } from '../types';
+import NearBySearch from './NearBySearch';
 
 interface MapComponentProps {
     stations: Station[];
