@@ -13,6 +13,10 @@ const NearbyRestaurants = () => {
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [requestMade, setRequestMade] = useState(false);
+  const [originalCoordinates, setOriginalCoordinates] = useState({
+    lat: 37.7749,
+    lng: -122.4194
+  });
 
   const mapStyles = {
     height: "500px",
@@ -23,13 +27,19 @@ const NearbyRestaurants = () => {
 const searchNearbyRestaurants = async () => {
   try {
     setLoading(true);
+    setOriginalCoordinates(coordinates);
     const response = await fetch(
       `http://localhost:9897/api/places/?lat=${coordinates.lat}&lng=${coordinates.lng}`,
       {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        }, 
+        body: JSON.stringify({
+          current_battery: 30,
+          planned_time: new Date().toISOString(),
+          desired_battery: 80,
+        })
       }
     );
     
@@ -66,9 +76,24 @@ const searchNearbyRestaurants = async () => {
       lat: restaurant.geometry.location.lat,
       lng: restaurant.geometry.location.lng
     };
-    setZoom(17);
-    setCoordinates(position);
-    setDirectionsResponse(null);
+    
+    // If directions are showing, clear them and reset to original view
+    if (directionsResponse) {
+      setDirectionsResponse(null);
+      setSelectedRoute(null);
+      setCoordinates(originalCoordinates);
+      setZoom(14);
+      return;
+    }
+    
+    // If we're already at this position, show route
+    if (coordinates.lat === position.lat && coordinates.lng === position.lng) {
+      handleNavigation({ stopPropagation: () => {} }, restaurant);
+    } else {
+      // First click - zoom to restaurant
+      setZoom(17);
+      setCoordinates(position);
+    }
   };
 
   const getCurrentLocation = () => {
@@ -96,7 +121,7 @@ const searchNearbyRestaurants = async () => {
     e.stopPropagation();
     setRequestMade(false);
     setSelectedRoute({
-      origin: coordinates,
+      origin: originalCoordinates,
       destination: {
         lat: restaurant.geometry.location.lat,
         lng: restaurant.geometry.location.lng
@@ -197,38 +222,41 @@ const searchNearbyRestaurants = async () => {
 
       <div style={{ marginTop: '20px' }}>
         <h3>Nearby Restaurants:</h3>
-        {restaurants.map((restaurant) => (
-          <button
-            key={restaurant.place_id}
-            onClick={() => handleRestaurantSelect(restaurant)}
-            style={{
-              width: '100%',
-              padding: '10px',
-              margin: '5px 0',
-              textAlign: 'left',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              backgroundColor: 'white',
-              cursor: 'pointer'
-            }}
-          >
-            <h4 style={{ margin: '0 0 5px 0' }}>{restaurant.name}</h4>
-            <p style={{ margin: '0 0 5px 0' }}>{restaurant.vicinity}</p>
-            <button 
-              onClick={(e) => handleNavigation(e, restaurant)}
+        <div style={{
+          display: 'flex',
+          overflowX: 'auto',
+          gap: '10px',
+          padding: '10px 0',
+          WebkitOverflowScrolling: 'touch', // For smooth scrolling on iOS
+          msOverflowStyle: '-ms-autohiding-scrollbar', // For IE/Edge
+        }}>
+          {restaurants.map((restaurant) => (
+            <button
+              key={restaurant.place_id}
+              onClick={() => handleRestaurantSelect(restaurant)}
               style={{
-                padding: '5px 10px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '3px',
-                cursor: 'pointer'
+                minWidth: '300px', // Fixed width for each card
+                flex: '0 0 auto', // Prevent cards from stretching
+                padding: '10px',
+                margin: '0',
+                textAlign: 'left',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                height: 'fit-content'
               }}
             >
+              <h4 style={{ margin: '0 0 5px 0' }}>{restaurant.name}</h4>
+              <p style={{ margin: '0 0 5px 0' }}>{restaurant.vicinity}</p>
+              <p style={{ margin: '0 0 5px 0' }}>{restaurant.duration.text}</p>
+              <p style={{ margin: '0 0 5px 0' }}>Price per Watt: {restaurant.price.pricePerWatt}</p>
+              <p style={{ margin: '0 0 5px 0' }}>Start time: {restaurant.start_time}</p>
+              <p style={{ margin: '0 0 5px 0' }}>End time: {restaurant.end_time}</p>
               Show Route
             </button>
-          </button>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

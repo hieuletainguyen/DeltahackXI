@@ -7,7 +7,7 @@ const getHourlyMultiplier = (plannedTime, stationId, threshold = 50, surgeMultip
 };
 
 
-const calculateDynamicPrice = (watt, usageCount, plannedTime, stationId, basePricePerWatt = 0.20) => {
+export const calculateDynamicPrice = (watt, usageCount, plannedTime, stationId, basePricePerWatt = 0.20) => {
     const LESS_VISITED_THRESHOLD = 10;
     const MORE_VISITED_THRESHOLD = 50;
 
@@ -32,23 +32,24 @@ const calculateDynamicPrice = (watt, usageCount, plannedTime, stationId, basePri
 
 export const getPrice = async (req, res) => {
     try {
-        const { station_id, planned_time, watt } = req.body;
+        const { name, planned_time, watt } = req.body;
         // !latitude || !longitude
-        if (!station_id || !planned_time || !watt) {
+        if (!name || !planned_time || !watt) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
         const plannedDateTime = new Date(planned_time);
 
-        const user_data = await client.db("data").collection("user").findOne({ _id: station_id });
-        const userCount = user_data.visit[`${plannedDateTime.getHours()}`]
-        if (!user_data) {
-            return res.status(404).json({ error: 'User not found' });
+        const provider_data = await client.db("data").collection("provider").findOne({ name: name });
+        if (!provider_data) {
+            return res.status(404).json({ error: 'Provider not found' });
         }        
+        const userCount = provider_data.visit[`${plannedDateTime.getHours()}`]
+        
         const { totalPrice, pricePerWatt, multiplier } = calculateDynamicPrice(
             parseFloat(watt),
             userCount,
             plannedDateTime,
-            station_id
+            provider_data._id
         );
 
         res.status(200).json({
