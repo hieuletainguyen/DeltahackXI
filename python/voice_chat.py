@@ -63,10 +63,10 @@ def chat_with_gpt(user_input, start_time="12:00", end_time="12:10", initial_volt
 
 
     - If the user says: "Change the station to <name>."
-    You might respond: "[Execution: setStation: station <name>], [Response: "Ok! Changing your station to station <name>.]"
+    You might respond: "[Execution: setStation: <station_name>], [Response: "Ok! Changing your station to station <station_name>.]"
 
     - If the user says: "Increase the voltage by <number>"
-    You might respond: "[Execution: setVoltage: initial voltage + <number>], [Response: Ok! Changing your voltage to station initial voltage + <number>.]"
+    You might respond: "[Execution: setVoltage: <number>], [Response: Ok! Changing your voltage to station initial voltage + <number>.]"
     
     - If the user says: "Decrease the voltage by <number>"
     You might respond: "[Execution: setVoltage: decrease voltage + <number>], [Response: Ok! Changing your voltage to station initial voltage + <number>.]"
