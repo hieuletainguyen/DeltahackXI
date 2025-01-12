@@ -5,6 +5,7 @@ import TimePicker from './TimePicker';
 import Price from './Price';
 import VoltageSelector from './VoltageSelector';
 import { Station } from '../types';
+import { ApiResponse } from '../types';
 
 interface TimeSelection {
     hours: number;
@@ -28,6 +29,8 @@ interface ChargingStationPanelProps {
     voltage: VoltageSelection;
     setVoltage: (voltage: VoltageSelection) => void;
     onSubmit: () => void;
+    apiResponse: ApiResponse[];
+    setApiResponse: (apiResponse: ApiResponse[]) => void;
 }
 
 const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
@@ -41,7 +44,9 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
     setEndTime,
     voltage,
     setVoltage,
-    onSubmit
+    onSubmit,
+    apiResponse,
+    setApiResponse
 }) => {
     const [animationClass, setAnimationClass] = useState('');
 

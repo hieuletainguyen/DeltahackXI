@@ -122,13 +122,20 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
         }
       );
       
-      const data = await response.json() as ApiResponse[];
-      console.log("grr",data)
-      setApiResponse(data);
+      const data = await response.json();
+      
+      // Check if response contains error
+      if (data.error) {
+        console.error('API Error:', data.error);
+        return;
+      }
+      
+      const apiData = data as ApiResponse[];
+      setApiResponse(apiData);
       
       // Convert API response to Restaurant format
-      if (data.length >= 5) {
-        const newRestaurants = data.map(item => ({
+      if (apiData.length >= 5) {
+        const newRestaurants = apiData.map((item: ApiResponse) => ({
           place_id: item.station.id,
           name: item.station.name,
           vicinity: `${item.distance.text} away`,
@@ -140,20 +147,17 @@ const NearbyRestaurants: React.FC<NearbyRestaurantsProps> = ({
           }
         }));
         setRestaurants(newRestaurants);
-
       }
       
-      
       // Convert API response to Station format
-      if (data.length >= 5) {
-        const newStations = data.map(item => ({
+      if (apiData.length >= 5) {
+        const newStations = apiData.map((item: ApiResponse) => ({
           id: item.station.id.toString(),
           name: item.station.name,
           location: item.station.location,
           pricePerWatt: item.station.pricePerWatt
-        }))
+        }));
         setStations(newStations);
-
       }
       
     } catch (error) {

@@ -107,6 +107,45 @@ export default function Main() {
         }));
     }, [startTime, endTime, voltage, selectedStation]);
 
+    useEffect(() => {
+        if (apiResponse.length < 5) return;
+        
+        const newStations = apiResponse.map(item => ({
+            id: item.station.id.toString(),
+            name: item.station.name,
+            location: item.station.location,
+            pricePerWatt: item.station.pricePerWatt
+        }));
+        
+        setStations(newStations);
+        setSelectedStation(newStations[0]);
+    }, [apiResponse]);
+
+    useEffect(() => {
+        console.log("selectedStation", selectedStation);
+        console.log("stations", apiResponse);
+        if (!selectedStation) return;
+        if (apiResponse.length < 5) return;
+        
+        const selectedResponse = apiResponse.find(item => item.station.id === selectedStation.id);
+        if (selectedResponse) {
+            const startDateTime = new Date(selectedResponse.start_time);
+            const endDateTime = new Date(selectedResponse.end_time);
+            
+            setStartTime({
+                hours: startDateTime.getHours(),
+                minutes: startDateTime.getMinutes()
+            });
+            
+            setEndTime({
+                hours: endDateTime.getHours(),
+                minutes: endDateTime.getMinutes()
+            });
+        }
+        
+
+    }, [selectedStation, apiResponse]);
+
     // user variables
     const { user, setUser } = useUser();
 
@@ -206,6 +245,8 @@ export default function Main() {
                     voltage={voltage}
                     setVoltage={handleVoltageChange}
                     onSubmit={handleSubmit}
+                    apiResponse={apiResponse}
+                    setApiResponse={setApiResponse}
                 />
             </div>
         
