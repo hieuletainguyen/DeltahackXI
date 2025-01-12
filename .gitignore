@@ -84,4 +84,6 @@ venv/
 env/
 .env/
 .venv/
-ENV/
+ENV/.env
+venv
+node_modules
