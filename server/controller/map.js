@@ -63,12 +63,11 @@ export const getMap = async (req, res) => {
         });
 
         const url = `${baseUrl}?${params.toString()}`;
-        // await client.connect();
+        await client.connect();
         
         const response = await fetch(url);
         const data = await response.json();
         const results = data.results;
-        console.log(results);
 
         const enrichedResults = await Promise.all(results.map(async (place) => {
             const distance = calculateDistance(
@@ -84,35 +83,67 @@ export const getMap = async (req, res) => {
             const timeMinutes = Math.round(timeHours * 60);
 
             // query the location of the provider
-            // const provider_data = await client.db("data").collection("provider").findOne({ name: place.name });
-            // const plannedDateTime = new Date(planned_time);
-            // const userCount = provider_data.visit[`${plannedDateTime.getHours()}`]
-            // const { totalPrice, pricePerWatt, multiplier } = calculateDynamicPrice(
-            //     45.3,
-            //     userCount,
-            //     plannedDateTime,
-            //     provider_data._id
-            // );
+            const provider_data = await client.db("data").collection("provider").findOne({ name: place.name });
+            const plannedDateTime = new Date(planned_time);
+            const userCount = provider_data.visit[`${plannedDateTime.getHours()}`]
+            const { totalPrice, pricePerWatt, multiplier } = calculateDynamicPrice(
+                45.3,
+                userCount,
+                plannedDateTime,
+                provider_data._id
+            );
+
+            //query the booking time of the station if not foiund, create a new one
+            var station_data_queue = await client.db("data").collection("queue").findOne({ stationId: provider_data._id });
+            if (!station_data_queue) {
+                station_data_queue = {
+                    stationId: provider_data._id,
+                    queue: Object.fromEntries(Array.from({length: 23}, (_, i) => [`${i}`, []]))
+                };
+                await client.db("data").collection("queue").insertOne(station_data_queue);
+            }
+
+            const bookedTimes = [];
+            for (let hour in station_data_queue.queue) {
+                if (station_data_queue.queue[hour].length > 0) {
+                    bookedTimes.push({
+                        hour: parseInt(hour),
+                        bookings: station_data_queue.queue[hour]
+                    });
+                }
+            }
+            console.log(bookedTimes);
             // ================================
 
             return {
-                ...place,
+                // ...place,
+                // ===============Modified=================
+                station: {
+                    id: provider_data._id,
+                    name: provider_data.name,
+                    location: {
+                        lat: provider_data.location.lat,
+                        lng: provider_data.location.lng
+                    },
+                    pricePerWatt: pricePerWatt
+                },
+                // ================================
                 distance: {
                     value: distance,
                     text: `${distance.toFixed(1)} km`
                 },
-                duration: {
-                    value: timeMinutes * 60, // in seconds
-                    text: `${timeMinutes} mins`
-                }, 
-                // stationId: provider_data._id,
-                // start_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000),
-                // end_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000 + (desired_battery - current_battery) / provider_data.chargeRate * 60 * 1000),
+                // duration: {
+                //     value: timeMinutes * 60, // in seconds
+                //     text: `${timeMinutes} mins`
+                // }, 
+                start_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000),
+                end_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000 + (desired_battery - current_battery) / provider_data.chargeRate * 60 * 1000),
                 // price: {
                 //     totalPrice,
                 //     pricePerWatt,
                 //     multiplier
                 // }
+                bookedTimes: bookedTimes
             };
         }));
 

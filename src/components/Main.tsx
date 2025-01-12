@@ -4,19 +4,8 @@ import ChargingStationPanel from './Panel';
 import Login from './Login';
 import Signup from './Signup';
 import { useUser } from '../contexts/UserContext';
-
-const dummyStations = [
-    { id: 1, name: 'Station 1', location: { lat: 37.7749, lng: -122.4194 }, pricePerWatt: 0.15432 },
-    { id: 2, name: 'Station 2', location: { lat: 37.7849, lng: -122.4094 }, pricePerWatt: 0.145326 },
-    { id: 3, name: 'Station 3', location: { lat: 37.7949, lng: -122.3994 }, pricePerWatt: 0.134326 },
-];
-
-interface Station {
-    id: number;
-    name: string;
-    location: { lat: number; lng: number };
-    pricePerWatt: number;
-}
+import NearBySearch from './NearBySearch';
+import { Station, ApiResponse } from '../types';
 
 interface TimeSelection {
     hours: number;
@@ -29,7 +18,9 @@ interface VoltageSelection {
 }
 
 export default function Main() {
-    const [selectedStation, setSelectedStation] = useState(dummyStations[0] as Station);
+    const [stations, setStations] = useState<Station[]>([]);
+    const [apiResponse, setApiResponse] = useState<ApiResponse[]>([]);
+    const [selectedStation, setSelectedStation] = useState<Station | null>(null);
     const [startTime, setStartTime] = useState<TimeSelection>({ hours: 1, minutes: 10 });
     const [endTime, setEndTime] = useState<TimeSelection>({ hours: 1, minutes: 23 });
     const [voltage, setVoltage] = useState<VoltageSelection>({
@@ -104,14 +95,14 @@ export default function Main() {
 
     // Update panelAttributes whenever individual states change
     useEffect(() => {
-        const price = selectedStation.pricePerWatt * (voltage.target - voltage.start) * BATTERY_CAPACITY;
+        const price = selectedStation ? selectedStation.pricePerWatt * (voltage.target - voltage.start) * BATTERY_CAPACITY : 0;
         
         setPanelAttributes(prev => ({
             ...prev,
             startTime,
             endTime,
             voltage,
-            station: selectedStation,
+            station: selectedStation || stations[0],
             price: price
         }));
     }, [startTime, endTime, voltage, selectedStation]);
@@ -192,17 +183,20 @@ export default function Main() {
 
     return (
         <div className="h-screen flex flex-col">
-            <div className="h-1/2 relative">
+            <div className="h-1/2 relative overflow-hidden">
                 <MapComponent 
-                    stations={dummyStations} 
+                    stations={stations} 
+                    setStations={setStations}
                     onStationSelect={setSelectedStation} 
                     setIsAuthenticated={setIsAuthenticated} 
+                    apiResponse={apiResponse}
+                    setApiResponse={setApiResponse}
                 />
             </div>
             <div className="h-1/2 w-full">
                 <ChargingStationPanel 
                     price={panelAttributes.price}
-                    stations={dummyStations} 
+                    stations={stations} 
                     selectedStation={selectedStation} 
                     setSelectedStation={setSelectedStation} 
                     startTime={startTime}

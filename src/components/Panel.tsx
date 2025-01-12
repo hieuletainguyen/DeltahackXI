@@ -4,13 +4,7 @@ import StationName from './StationName';
 import TimePicker from './TimePicker';
 import Price from './Price';
 import VoltageSelector from './VoltageSelector';
-
-interface Station {
-    id: number;
-    name: string;
-    location: { lat: number; lng: number };
-    pricePerWatt: number;
-}
+import { Station } from '../types';
 
 interface TimeSelection {
     hours: number;
@@ -25,7 +19,7 @@ interface VoltageSelection {
 interface ChargingStationPanelProps {
     price: number;
     stations: Station[];
-    selectedStation: Station;
+    selectedStation: Station | null;
     setSelectedStation: (station: Station) => void;
     startTime: TimeSelection;
     setStartTime: (time: TimeSelection) => void;
@@ -51,21 +45,25 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
 }) => {
     const [animationClass, setAnimationClass] = useState('');
 
-    const currentIndex = stations.findIndex(station => station.id === selectedStation.id);
+    const currentIndex = selectedStation ? stations.findIndex(station => station.id === selectedStation.id) : -1;
 
     const handleNextStation = () => {
+        if (stations.length === 0) return;
+        
         setAnimationClass('slide-out-left');
         setTimeout(() => {
-            const nextIndex = (currentIndex + 1) % stations.length;
+            const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % stations.length;
             setSelectedStation(stations[nextIndex]);
             setAnimationClass('slide-in-right');
         }, 200);
     };
 
     const handlePreviousStation = () => {
+        if (stations.length === 0) return;
+        
         setAnimationClass('slide-out-right');
         setTimeout(() => {
-            const prevIndex = (currentIndex - 1 + stations.length) % stations.length;
+            const prevIndex = currentIndex < 0 ? 0 : (currentIndex - 1 + stations.length) % stations.length;
             setSelectedStation(stations[prevIndex]);
             setAnimationClass('slide-in-left');
         }, 200);
@@ -76,8 +74,7 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
             <Price price={price} />
             <div className="separator"></div>
             <StationName
-                station={selectedStation}
-                animationClass={animationClass}
+                station={selectedStation || stations[0]}
                 onPrevious={handlePreviousStation}
                 onNext={handleNextStation}
             />
