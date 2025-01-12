@@ -32,6 +32,7 @@
     font-size: 28px;
     position: absolute;
     font-weight: bold;
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
     background: linear-gradient(45deg, #007AFF, #0A84FF);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -113,4 +114,8 @@
     margin-right: 10px;
     width: 24px;
     height: 24px;
+}
+
+.time-input-group span {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
 }

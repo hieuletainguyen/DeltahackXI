@@ -10,7 +10,6 @@ const Price: React.FC<PriceProps> = ({ price }) => {
         <div className="price-container">
             <span className="price-currency">$</span>
             <span className="price-amount">{price.toFixed(2)}</span>
-            <span className="price-unit">/kWh</span>
         </div>
     );
 };

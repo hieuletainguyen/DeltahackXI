@@ -6,15 +6,16 @@ import Signup from './Signup';
 import { useUser } from '../contexts/UserContext';
 
 const dummyStations = [
-    { id: 1, name: 'Station 1', location: { lat: 37.7749, lng: -122.4194 } },
-    { id: 2, name: 'Station 2', location: { lat: 37.7849, lng: -122.4094 } },
-    { id: 3, name: 'Station 3', location: { lat: 37.7949, lng: -122.3994 } },
+    { id: 1, name: 'Station 1', location: { lat: 37.7749, lng: -122.4194 }, pricePerWatt: 0.15432 },
+    { id: 2, name: 'Station 2', location: { lat: 37.7849, lng: -122.4094 }, pricePerWatt: 0.145326 },
+    { id: 3, name: 'Station 3', location: { lat: 37.7949, lng: -122.3994 }, pricePerWatt: 0.134326 },
 ];
 
 interface Station {
     id: number;
     name: string;
     location: { lat: number; lng: number };
+    pricePerWatt: number;
 }
 
 interface TimeSelection {
@@ -45,14 +46,19 @@ export default function Main() {
         voltage: { start: 20, target: 80 }
     });
 
+    const BATTERY_CAPACITY = 100;
+
     // Update panelAttributes whenever individual states change
     useEffect(() => {
+        const price = selectedStation.pricePerWatt * (voltage.target - voltage.start) * BATTERY_CAPACITY;
+        
         setPanelAttributes(prev => ({
             ...prev,
             startTime,
             endTime,
             voltage,
-            station: selectedStation
+            station: selectedStation,
+            price: price
         }));
     }, [startTime, endTime, voltage, selectedStation]);
 
@@ -82,6 +88,41 @@ export default function Main() {
     const handleSubmit = () => {
         console.log(panelAttributes);
         alert(`Booking successful: ${JSON.stringify(panelAttributes)}`);
+    };
+
+    // Function to calculate minutes between two TimeSelections
+    const getMinutesDifference = (start: TimeSelection, end: TimeSelection) => {
+        return (end.hours - start.hours) * 60 + (end.minutes - start.minutes);
+    };
+
+    // Function to convert minutes to TimeSelection
+    const minutesToTimeSelection = (startTime: TimeSelection, minutes: number): TimeSelection => {
+        const totalMinutes = startTime.hours * 60 + startTime.minutes + minutes;
+        return {
+            hours: Math.floor(totalMinutes / 60) % 24,
+            minutes: totalMinutes % 60
+        };
+    };
+
+    const handleVoltageChange = (newVoltage: VoltageSelection) => {
+        const oldVoltageDiff = voltage.target - voltage.start;
+        const newVoltageDiff = newVoltage.target - newVoltage.start;
+        
+        if (oldVoltageDiff !== newVoltageDiff) {
+            // Calculate current time difference in minutes
+            const currentTimeDiff = getMinutesDifference(startTime, endTime);
+            
+            // Calculate new time difference based on voltage ratio
+            const newTimeDiff = Math.round(
+                currentTimeDiff * (newVoltageDiff / oldVoltageDiff)
+            );
+            
+            // Update end time based on new time difference
+            const newEndTime = minutesToTimeSelection(startTime, newTimeDiff);
+            setEndTime(newEndTime);
+        }
+
+        setVoltage(newVoltage);
     };
 
     if (!isAuthenticated) {
@@ -115,7 +156,7 @@ export default function Main() {
                     endTime={endTime}
                     setEndTime={setEndTime}
                     voltage={voltage}
-                    setVoltage={setVoltage}
+                    setVoltage={handleVoltageChange}
                     onSubmit={handleSubmit}
                 />
             </div>

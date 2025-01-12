@@ -10,9 +10,14 @@ interface VoltageSelection {
 interface VoltageSelectorProps {
     voltage: VoltageSelection;
     setVoltage: (voltage: VoltageSelection) => void;
+    onVoltageChange?: (newVoltage: VoltageSelection) => void;
 }
 
-const VoltageSelector: React.FC<VoltageSelectorProps> = ({ voltage, setVoltage }) => {
+const VoltageSelector: React.FC<VoltageSelectorProps> = ({ 
+    voltage, 
+    setVoltage,
+    onVoltageChange 
+}) => {
     const [animatingNumber, setAnimatingNumber] = useState<string | null>(null);
     const [isIncrementing, setIsIncrementing] = useState(true);
 
@@ -25,14 +30,28 @@ const VoltageSelector: React.FC<VoltageSelectorProps> = ({ voltage, setVoltage }
         if (newValue > 100) newValue = 0;
         if (newValue < 0) newValue = 100;
 
+        // Validate voltage ranges
+        if (isStart) {
+            if (newValue >= voltage.target) {
+                return;
+            }
+        } else {
+            if (newValue <= voltage.start) {
+                return;
+            }
+        }
+
         setIsIncrementing(isIncrement);
         setAnimatingNumber(isStart ? 'start' : 'target');
         
+        const newVoltage = {
+            ...voltage,
+            [isStart ? 'start' : 'target']: newValue
+        };
+
         setTimeout(() => {
-            setVoltage({
-                ...voltage,
-                [isStart ? 'start' : 'target']: newValue
-            });
+            setVoltage(newVoltage);
+            onVoltageChange?.(newVoltage);
             setAnimatingNumber(null);
         }, 200);
     };

@@ -9,6 +9,7 @@ interface Station {
     id: number;
     name: string;
     location: { lat: number; lng: number };
+    pricePerWatt: number;
 }
 
 interface TimeSelection {

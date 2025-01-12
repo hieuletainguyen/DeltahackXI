@@ -10,6 +10,7 @@ interface Station {
         lat: number;
         lng: number;
     };
+    pricePerWatt: number;
 }
 
 interface MapComponentProps {
