@@ -87,3 +87,5 @@ env/
 ENV/.env
 venv
 node_modules
+
+deltahack_venv/

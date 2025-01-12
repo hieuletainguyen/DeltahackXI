@@ -63,12 +63,11 @@ export const getMap = async (req, res) => {
         });
 
         const url = `${baseUrl}?${params.toString()}`;
-        // await client.connect();
+        await client.connect();
         
         const response = await fetch(url);
         const data = await response.json();
         const results = data.results;
-        console.log(results);
 
         const enrichedResults = await Promise.all(results.map(async (place) => {
             const distance = calculateDistance(
@@ -84,17 +83,27 @@ export const getMap = async (req, res) => {
             const timeMinutes = Math.round(timeHours * 60);
 
             // query the location of the provider
-            // const provider_data = await client.db("data").collection("provider").findOne({ name: place.name });
-            // const plannedDateTime = new Date(planned_time);
-            // const userCount = provider_data.visit[`${plannedDateTime.getHours()}`]
-            // const { totalPrice, pricePerWatt, multiplier } = calculateDynamicPrice(
-            //     45.3,
-            //     userCount,
-            //     plannedDateTime,
-            //     provider_data._id
-            // );
-            // ================================
+            var provider_data = await client.db("data").collection("provider").findOne({ name: place.name });
+            if (!provider_data) {
+                const newProviderData = {
+                    name: place.name,
+                    location: place.geometry.location,
+                    visit: Object.fromEntries(Array.from({ length: 24 }, (_, i) => [`${i}`, []])),
+                    chargeRate: 22.5 // default charge rate
+                };
+                await client.db("data").collection("provider").insertOne(newProviderData);
+                provider_data = newProviderData;
+            }
 
+            const plannedDateTime = new Date(planned_time);
+            const userCount = provider_data.visit[`${plannedDateTime.getHours()}`]
+            const { totalPrice, pricePerWatt, multiplier } = calculateDynamicPrice(
+                45.3,
+                userCount,
+                plannedDateTime,
+                provider_data._id
+            );
+            // ================================
             return {
                 ...place,
                 distance: {
@@ -105,14 +114,14 @@ export const getMap = async (req, res) => {
                     value: timeMinutes * 60, // in seconds
                     text: `${timeMinutes} mins`
                 }, 
-                // stationId: provider_data._id,
-                // start_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000),
-                // end_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000 + (desired_battery - current_battery) / provider_data.chargeRate * 60 * 1000),
-                // price: {
-                //     totalPrice,
-                //     pricePerWatt,
-                //     multiplier
-                // }
+                stationId: provider_data._id,
+                start_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000),
+                end_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000 + (desired_battery - current_battery) / provider_data.chargeRate * 60 * 1000),
+                price: {
+                    totalPrice,
+                    pricePerWatt,
+                    multiplier
+                }
             };
         }));
 

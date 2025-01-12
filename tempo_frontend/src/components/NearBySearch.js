@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GoogleMap, LoadScript, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 
 const NearbyRestaurants = () => {
@@ -23,35 +23,43 @@ const NearbyRestaurants = () => {
     width: "100%"
   };
 
-
-const searchNearbyRestaurants = async () => {
-  try {
-    setLoading(true);
-    setOriginalCoordinates(coordinates);
-    const response = await fetch(
-      `http://localhost:9897/api/places/?lat=${coordinates.lat}&lng=${coordinates.lng}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }, 
-        body: JSON.stringify({
-          current_battery: 30,
-          planned_time: new Date().toISOString(),
-          desired_battery: 80,
-        })
-      }
-    );
+  useEffect(() => {
+    const initializeMap = async () => {
+      await getCurrentLocation();
+      // await searchNearbyRestaurants();
+    };
     
-    const data = await response.json();
-    setRestaurants(data);
-    console.log(data);
-  } catch (error) {
-    console.error('Error fetching restaurants:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+    initializeMap();
+  }, []);
+
+  const searchNearbyRestaurants = async () => {
+    try {
+      setLoading(true);
+      setOriginalCoordinates(coordinates);
+      const response = await fetch(
+        `http://localhost:9897/api/places/?lat=${coordinates.lat}&lng=${coordinates.lng}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }, 
+          body: JSON.stringify({
+            current_battery: 30,
+            planned_time: new Date().toISOString(),
+            desired_battery: 80,
+          })
+        }
+      );
+      const data = await response.json();
+      console.log("data", data);
+      setRestaurants(data);
+      console.log(data);
+    } catch (error) {
+      console.error('Error fetching restaurants:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLatChange = (e) => {
     setCoordinates(prev => ({
@@ -97,24 +105,31 @@ const searchNearbyRestaurants = async () => {
   };
 
   const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      setLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCoordinates({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-          setLoading(false);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          setLoading(false);
-        }
-      );
-    } else {
-      alert('Geolocation is not supported by your browser');
-    }
+    return new Promise((resolve, reject) => {
+      if (navigator.geolocation) {
+        setLoading(true);
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const currentLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            setCoordinates(currentLocation);
+            setOriginalCoordinates(currentLocation);
+            setLoading(false);
+            resolve();
+          },
+          (error) => {
+            console.error('Error getting location:', error);
+            setLoading(false);
+            reject(error);
+          }
+        );
+      } else {
+        alert('Geolocation is not supported by your browser');
+        reject(new Error('Geolocation not supported'));
+      }
+    });
   };
 
   const handleNavigation = (e, restaurant) => {
@@ -248,12 +263,16 @@ const searchNearbyRestaurants = async () => {
               }}
             >
               <h4 style={{ margin: '0 0 5px 0' }}>{restaurant.name}</h4>
-              <p style={{ margin: '0 0 5px 0' }}>{restaurant.vicinity}</p>
+              <p style={{ margin: '0 0 5px 0' }}>Lat: {restaurant.geometry.location.lat}</p>
+              <p style={{ margin: '0 0 5px 0' }}>Lng: {restaurant.geometry.location.lng}</p>
               <p style={{ margin: '0 0 5px 0' }}>{restaurant.duration.text}</p>
-              {/* <p style={{ margin: '0 0 5px 0' }}>Price per Watt: {restaurant.price.pricePerWatt}</p>
-              <p style={{ margin: '0 0 5px 0' }}>Start time: {restaurant.start_time}</p>
-              <p style={{ margin: '0 0 5px 0' }}>End time: {restaurant.end_time}</p> */}
-              Show Route
+              <p style={{ margin: '0 0 5px 0' }}>Price per Watt: {restaurant.price.pricePerWatt}</p>
+              <p style={{ margin: '0 0 5px 0' }}>
+                <strong>Start time:</strong> {restaurant.start_time}
+              </p>
+              <p style={{ margin: '0 0 5px 0' }}>
+                <strong>End time:</strong> {restaurant.end_time}
+              </p> 
             </button>
           ))}
         </div>
