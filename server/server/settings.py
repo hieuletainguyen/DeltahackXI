@@ -40,8 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'knox',
     'corsheaders',
-    'map',
-    'maps'
+    'map'
 ]
 
 MIDDLEWARE = [
@@ -97,7 +96,7 @@ WSGI_APPLICATION = 'server.wsgi.application'
 
 DATABASES = {
      'default': {
-         'ENGINE': 'django.db.backends.mongodb',
+         'ENGINE': 'django.db.backends.sqlite3',
          'NAME': 'ev_charge', 
          'HOST': 'localhost', 
          'PORT': 27017,
