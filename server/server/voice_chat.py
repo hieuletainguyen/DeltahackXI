@@ -12,6 +12,7 @@ def record_audio_to_file(filename="input.wav"):
             audio = r.listen(source)
         with open(filename, "wb") as f:
             f.write(audio.get_wav_data())
+        
         return filename
     except sr.RequestError as e:
         print(f"Could not request results; {e}")
@@ -40,14 +41,41 @@ def transcribe_audio(filename):
         raise
 
 
-def chat_with_gpt(prompt):
+def chat_with_gpt(user_input):
     """ send a prompt to chatgpt and return the response"""
+    
+    system_prompt = """
+    You are a command interpreter for an EV charging station assistant. 
+    You have four attributes: price, station, time, and voltage.
+
+    **Requirements:**
+    1. Figure out from the user's request which attribute they want to change (or if they want to retrieve info).
+    2. Respond in a specific format or short answer as demonstrated in the examples below.
+
+    **Examples:**
+    - If the user says: "I want to move the time interval ten minutes later."
+    You might respond: "Execution: setTime: 12:30 - 12:40"
+
+    - If the user says: "Change the station to station2."
+    You might respond: "Ok! Changing your station to station2."
+
+    - If the user says: "Increase the voltage to 240."
+    You might respond: "Execution: setVoltage to 240."
+
+    - If the user says: "Update the price to $10."
+    You might respond: "Execution: setPrice: 10."
+
+    When you’re uncertain, try your best to infer the user's meaning. Always respond in a concise format, referencing the correct attribute.
+    """
+    messages = [
+        {"role": "system", "content": system_prompt.strip()},
+        {"role": "user", "content": user_input.strip()}
+    ]
+    
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+            messages=messages
         )
         return response["choices"][0]["message"]["content"]
     except openai.error.RateLimitError as e:
@@ -63,7 +91,6 @@ def chat_with_gpt(prompt):
 def main():
     #step 1: record audio and save to file
     audio_filename = record_audio_to_file()
-    
     #step2: transcribe the recorded audio
     print("Transcribing audio...")
     transcribed_text = transcribe_audio(audio_filename)
