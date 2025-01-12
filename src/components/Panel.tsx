@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import '../styles/panel.css';
 import StationName from './StationName';
 import TimePicker from './TimePicker';
@@ -11,35 +11,44 @@ interface Station {
     location: { lat: number; lng: number };
 }
 
+interface TimeSelection {
+    hours: number;
+    minutes: number;
+}
+
+interface VoltageSelection {
+    start: number;
+    target: number;
+}
+
 interface ChargingStationPanelProps {
+    price: number;
     stations: Station[];
     selectedStation: Station;
     setSelectedStation: (station: Station) => void;
-    selectedTime: number;
-    setSelectedTime: (time: number) => void;
-    batteryPercentage: number;
-    setBatteryPercentage: (percentage: number) => void;
+    startTime: TimeSelection;
+    setStartTime: (time: TimeSelection) => void;
+    endTime: TimeSelection;
+    setEndTime: (time: TimeSelection) => void;
+    voltage: VoltageSelection;
+    setVoltage: (voltage: VoltageSelection) => void;
+    onSubmit: () => void;
 }
 
 const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
     stations,
+    price,
     selectedStation,
     setSelectedStation,
-    selectedTime,
-    setSelectedTime,
-    batteryPercentage,
-    setBatteryPercentage
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
+    voltage,
+    setVoltage,
+    onSubmit
 }) => {
-    const [startHours, setStartHours] = useState(0);
-    const [startMinutes, setStartMinutes] = useState(0);
-    const [endHours, setEndHours] = useState(0);
-    const [endMinutes, setEndMinutes] = useState(0);
     const [animationClass, setAnimationClass] = useState('');
-
-    useEffect(() => {
-        const totalMinutes = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
-        setSelectedTime(totalMinutes);
-    }, [startHours, startMinutes, endHours, endMinutes]);
 
     const currentIndex = stations.findIndex(station => station.id === selectedStation.id);
 
@@ -63,7 +72,7 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
 
     return (
         <div className="charging-panel">
-            <Price price={0.45} />
+            <Price price={price} />
             <div className="separator"></div>
             <StationName
                 station={selectedStation}
@@ -75,19 +84,15 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
             <div className="bottom-container">
                 <div className="left-section">
                     <TimePicker
-                        startHours={startHours}
-                        startMinutes={startMinutes}
-                        endHours={endHours}
-                        endMinutes={endMinutes}
-                        setStartHours={setStartHours}
-                        setStartMinutes={setStartMinutes}
-                        setEndHours={setEndHours}
-                        setEndMinutes={setEndMinutes}
+                        startTime={startTime}
+                        endTime={endTime}
+                        setStartTime={setStartTime}
+                        setEndTime={setEndTime}
                     />
                     <div className="voltage-section">
                         <VoltageSelector 
-                            value={batteryPercentage}
-                            onChange={setBatteryPercentage}
+                            voltage={voltage}
+                            setVoltage={setVoltage}
                         />
                     </div>
                 </div>
@@ -95,11 +100,7 @@ const ChargingStationPanel: React.FC<ChargingStationPanelProps> = ({
                     <button 
                         className="checkout-button"
                         onClick={() => {
-                            if (selectedStation) {
-                                alert(`Booking ${selectedStation.name} from ${startHours}:${startMinutes.toString().padStart(2, '0')} to ${endHours}:${endMinutes.toString().padStart(2, '0')} with ${batteryPercentage}% battery`);
-                            } else {
-                                alert('Please select a charging station before continuing.');
-                            }
+                            onSubmit();
                         }}
                     >
                         &#8594;

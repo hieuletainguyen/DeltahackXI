@@ -15,9 +15,10 @@ interface Station {
 interface MapComponentProps {
     stations: Station[];
     onStationSelect: (station: Station) => void;
+    setIsAuthenticated: (auth: boolean) => void;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ stations, onStationSelect }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ stations, onStationSelect, setIsAuthenticated }) => {
     return (
         <div className="map-container">
             <LoadScript googleMapsApiKey="YOUR_API_KEY">
@@ -36,7 +37,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ stations, onStationSelect }
                 </GoogleMap>
             </LoadScript>
             <QRButton />
-            <ProfileButton />
+            <ProfileButton setIsAuthenticated={setIsAuthenticated} />
         </div>
     );
 };

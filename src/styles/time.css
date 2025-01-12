@@ -1,8 +1,8 @@
 .time-picker-container {
     width: 100%;
     display: flex;
-    justify-content: center;
-    padding: 15px 0;
+    justify-content: flex-start;
+    padding: 10px 0;
 }
 
 .time-input-group {
@@ -30,7 +30,6 @@
 
 .time-number {
     font-size: 28px;
-    margin-top: 10px;
     position: absolute;
     font-weight: bold;
     background: linear-gradient(45deg, #007AFF, #0A84FF);
@@ -108,14 +107,10 @@
     opacity: 0.8;
 }
 
-.button-group {
-    display: flex;
-    flex-direction: column;
-    margin-left: 5px;
+.time-icon {
+    color: #007AFF;
+    transform: translateY(6px);
+    margin-right: 10px;
+    width: 24px;
+    height: 24px;
 }
-
-.button-group button {
-    width: 30px;
-    height: 30px;
-    margin-bottom: 2px;
-} 

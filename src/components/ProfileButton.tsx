@@ -3,13 +3,18 @@ import { User, LogOut, Settings, CreditCard } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import '../styles/profileButton.css';
 
-const ProfileButton = () => {
+interface ProfileButtonProps {
+    setIsAuthenticated: (auth: boolean) => void;
+}
+
+const ProfileButton = ({ setIsAuthenticated }: ProfileButtonProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const { user, setUser } = useUser();
-
+    
     const handleLogout = () => {
         localStorage.removeItem('user');
         setUser(null);
+        setIsAuthenticated(false);
     };
 
     return (
