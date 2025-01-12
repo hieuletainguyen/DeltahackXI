@@ -23,6 +23,22 @@ const TimePicker: React.FC<TimePickerProps> = ({
     const [animatingNumber, setAnimatingNumber] = useState<string | null>(null);
     const [isIncrementing, setIsIncrementing] = useState<boolean>(true);
 
+    const handleStartHourChange = (hours: number) => setStartTime({ ...startTime, hours });
+    const handleEndHourChange = (hours: number) => setEndTime({ ...endTime, hours });
+    const handleStartMinuteChange = (minutes: number) => setStartTime({ ...startTime, minutes });
+    const handleEndMinuteChange = (minutes: number) => setEndTime({ ...endTime, minutes });
+
+    const handleHourChange = (isStart: boolean, increment: boolean) => {
+        const timeObj = isStart ? startTime : endTime;
+        const setTimeObj = isStart ? setStartTime : setEndTime;
+        let newHours = increment ? timeObj.hours + 1 : timeObj.hours - 1;
+        
+        if (newHours > 23) newHours = 0;
+        if (newHours < 0) newHours = 23;
+        
+        setTimeObj({ ...timeObj, hours: newHours });
+    };
+
     const handleChange = (
         value: number, 
         setter: (value: number) => void, 
@@ -32,13 +48,63 @@ const TimePicker: React.FC<TimePickerProps> = ({
         isIncrement: boolean,
         isMinutes: boolean
     ) => {
-        let newValue;
+        let newValue: number;
         if (isMinutes) {
-            newValue = isIncrement ? 
-                value + 10 : 
-                value - 10;
-            if (newValue >= 60) newValue = 0;
-            if (newValue < 0) newValue = 50;
+            newValue = isIncrement ? value + 10 : value - 10;
+            
+            if (key === 'endMinutes') {
+                if (newValue >= 60) {
+                    newValue = newValue % 60;
+                    setEndTime({
+                        hours: endTime.hours + 1 > 23 ? 0 : endTime.hours + 1,
+                        minutes: newValue
+                    });
+                    setIsIncrementing(isIncrement);
+                    setAnimatingNumber(key);
+                    setTimeout(() => {
+                        setAnimatingNumber(null);
+                    }, 200);
+                    return;
+                } else if (newValue < 0) {
+                    newValue = newValue + 60;
+                    setEndTime({
+                        hours: endTime.hours - 1 < 0 ? 23 : endTime.hours - 1,
+                        minutes: newValue
+                    });
+                    setIsIncrementing(isIncrement);
+                    setAnimatingNumber(key);
+                    setTimeout(() => {
+                        setAnimatingNumber(null);
+                    }, 200);
+                    return;
+                }
+            } else if (key === 'startMinutes') {
+                if (newValue >= 60) {
+                    newValue = newValue % 60;
+                    setStartTime({
+                        hours: startTime.hours + 1 > 23 ? 0 : startTime.hours + 1,
+                        minutes: newValue
+                    });
+                    setIsIncrementing(isIncrement);
+                    setAnimatingNumber(key);
+                    setTimeout(() => {
+                        setAnimatingNumber(null);
+                    }, 200);
+                    return;
+                } else if (newValue < 0) {
+                    newValue = newValue + 60;
+                    setStartTime({
+                        hours: startTime.hours - 1 < 0 ? 23 : startTime.hours - 1,
+                        minutes: newValue
+                    });
+                    setIsIncrementing(isIncrement);
+                    setAnimatingNumber(key);
+                    setTimeout(() => {
+                        setAnimatingNumber(null);
+                    }, 200);
+                    return;
+                }
+            }
         } else {
             newValue = isIncrement ? value + 1 : value - 1;
             if (newValue > max) newValue = min;
@@ -80,11 +146,18 @@ const TimePicker: React.FC<TimePickerProps> = ({
         isMinutes?: boolean
     }) => {
         const isAnimating = animatingNumber === animKey;
-        let nextValue;
+        let nextValue: number;
+        
         if (isMinutes) {
-            nextValue = isIncrementing ? 
-                (value + 10 >= 60 ? 0 : value + 10) : 
-                (value - 10 < 0 ? 50 : value - 10);
+            if (animKey === 'endMinutes') {
+                nextValue = isIncrementing ? 
+                    (value + 10 >= 60 ? value + 10 - 60 : value + 10) : 
+                    (value - 10 < 0 ? value - 10 + 60 : value - 10);
+            } else {
+                nextValue = isIncrementing ? 
+                    ((value + 10) % 60) : 
+                    (value - 10 < 0 ? value - 10 + 60 : value - 10);
+            }
         } else {
             nextValue = isIncrementing ? 
                 (value + 1) % (max + 1) : 
@@ -115,14 +188,14 @@ const TimePicker: React.FC<TimePickerProps> = ({
                 <TimeNumber 
                     value={startTime.hours} 
                     animKey="startHours" 
-                    setter={(hours) => setStartTime({ ...startTime, hours })} 
+                    setter={handleStartHourChange}
                     max={23} 
                 />
                 <span>:</span>
                 <TimeNumber 
                     value={startTime.minutes} 
                     animKey="startMinutes" 
-                    setter={(minutes) => setStartTime({ ...startTime, minutes })} 
+                    setter={handleStartMinuteChange}
                     max={59}
                     isMinutes={true}
                 />
@@ -132,14 +205,14 @@ const TimePicker: React.FC<TimePickerProps> = ({
                 <TimeNumber 
                     value={endTime.hours} 
                     animKey="endHours" 
-                    setter={(hours) => setEndTime({ ...endTime, hours })} 
+                    setter={handleEndHourChange}
                     max={23} 
                 />
                 <span>:</span>
                 <TimeNumber 
                     value={endTime.minutes} 
                     animKey="endMinutes" 
-                    setter={(minutes) => setEndTime({ ...endTime, minutes })} 
+                    setter={handleEndMinuteChange}
                     max={59}
                     isMinutes={true}
                 />

@@ -57,7 +57,6 @@ const VoltageSelector: React.FC<VoltageSelectorProps> = ({
     };
 
     const handleWheel = (event: React.WheelEvent, isStart: boolean) => {
-        event.preventDefault();
         const isScrollingUp = event.deltaY < 0;
         handleChange(
             isStart ? voltage.start : voltage.target,

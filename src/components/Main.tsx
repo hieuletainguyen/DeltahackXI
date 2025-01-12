@@ -30,20 +30,52 @@ interface VoltageSelection {
 
 export default function Main() {
     const [selectedStation, setSelectedStation] = useState(dummyStations[0] as Station);
-    const [startTime, setStartTime] = useState<TimeSelection>({ hours: 0, minutes: 0 });
-    const [endTime, setEndTime] = useState<TimeSelection>({ hours: 0, minutes: 0 });
-    const [batteryPercentage, setBatteryPercentage] = useState(100);
+    const [startTime, setStartTime] = useState<TimeSelection>({ hours: 1, minutes: 10 });
+    const [endTime, setEndTime] = useState<TimeSelection>({ hours: 1, minutes: 23 });
     const [voltage, setVoltage] = useState<VoltageSelection>({
         start: 20,
-        target: 80
+        target: 40
     });
+
+    const handleTimeChange = (newStartTime: TimeSelection | null, newEndTime: TimeSelection | null) => {
+        const start = newStartTime || startTime;
+        const end = newEndTime || endTime;
+        
+        // Validate that end time is always after start time
+        const startMinutes = start.hours * 60 + start.minutes;
+        const endMinutes = end.hours * 60 + end.minutes;
+        if (endMinutes <= startMinutes) {
+            return;
+        }
+        
+        if (newEndTime) {
+            const oldTimeDiff = getMinutesDifference(startTime, endTime);
+            const newTimeDiff = getMinutesDifference(start, end);
+            
+            if (oldTimeDiff !== newTimeDiff) {
+                const voltageDiff = voltage.target - voltage.start;
+                const newVoltageDiff = Math.round(voltageDiff * (newTimeDiff / oldTimeDiff));
+                const newTargetVoltage = voltage.start + newVoltageDiff;
+                
+                if (newTargetVoltage <= 100 && newTargetVoltage > voltage.start) {
+                    setVoltage(prev => ({
+                        ...prev,
+                        target: newTargetVoltage
+                    }));
+                }
+            }
+        }
+
+        if (newStartTime) setStartTime(newStartTime);
+        if (newEndTime) setEndTime(newEndTime);
+    };
 
     const [panelAttributes, setPanelAttributes] = useState({
         price: 0.00,
         station: selectedStation,
-        startTime: { hours: 0, minutes: 0 },
-        endTime: { hours: 0, minutes: 0 },
-        voltage: { start: 20, target: 80 }
+        startTime: { hours: startTime.hours, minutes: startTime.minutes },
+        endTime: { hours: endTime.hours, minutes: endTime.minutes },
+        voltage: { start: voltage.start, target: voltage.target }
     });
 
     const BATTERY_CAPACITY = 100;
@@ -152,9 +184,9 @@ export default function Main() {
                     selectedStation={selectedStation} 
                     setSelectedStation={setSelectedStation} 
                     startTime={startTime}
-                    setStartTime={setStartTime}
+                    setStartTime={(time) => handleTimeChange(time, null)}
                     endTime={endTime}
-                    setEndTime={setEndTime}
+                    setEndTime={(time) => handleTimeChange(null, time)}
                     voltage={voltage}
                     setVoltage={handleVoltageChange}
                     onSubmit={handleSubmit}
