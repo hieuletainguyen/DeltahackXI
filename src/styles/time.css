@@ -32,11 +32,11 @@
     font-size: 28px;
     position: absolute;
     font-weight: bold;
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(45deg, #007AFF, #0A84FF);
+    font-family: 'Old Standard TT', 'Times New Roman', serif;
+    background: linear-gradient(45deg, #60A5FA, #3B82F6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 8px rgba(0, 122, 255, 0.2);
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
 }
 
 /* For incrementing */
@@ -104,18 +104,20 @@
 .to-arrow {
     margin: 0 5px;
     font-size: 24px;
-    color: #007AFF;
+    color: #60A5FA;
     opacity: 0.8;
+    font-family: 'Old Standard TT', 'Times New Roman', serif;
 }
 
 .time-icon {
-    color: #007AFF;
+    color: #60A5FA;
     transform: translateY(6px);
     margin-right: 10px;
     width: 24px;
     height: 24px;
 }
-
 .time-input-group span {
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Old Standard TT', 'Times New Roman', serif;
+    color: #60A5FA;
 }
+

@@ -121,6 +121,7 @@ export default function Main() {
                     const endTimeParts = times[1].split('-');
                     
                     setTimeout(() => {
+
                         setStartTime({
                             hours: parseInt(startTimeParts[0]),
                             minutes: parseInt(startTimeParts[1])
@@ -277,10 +278,10 @@ export default function Main() {
         console.log(panelAttributes);
         setShowSuccessPopup(true);
         setShowWebcam(true);
-        setTimeout(() => {
-            setShowSuccessPopup(false);
-            setShowWebcam(false);
-        }, 3000); // Show for 10 seconds
+        // setTimeout(() => {
+        //     setShowSuccessPopup(false);
+        //     setShowWebcam(false);
+        // }, 3000); // Show for 10 seconds
     };
 
     // Function to calculate minutes between two TimeSelections
@@ -391,7 +392,7 @@ export default function Main() {
                     setShowProviderSettings={setShowProviderSettings}
                     setShowCustomerSettings={setShowCustomerSettings}
                 />
-                <button
+                {/* <button
                     onClick={() => {
                         const commands = [
                             '[Execution: setStation: Hayes Street Grill]',
@@ -415,7 +416,7 @@ export default function Main() {
                     }}
                 >
                     Test Command
-                </button>
+                </button> */}
             </div>
             <div className="h-1/2 w-full">
                 <ChargingStationPanel 

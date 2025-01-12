@@ -42,49 +42,75 @@ def transcribe_audio(filename):
         raise
 
 
-def chat_with_gpt(user_input, start_time="12:00", end_time="12:10", initial_voltage="60"):
+def chat_with_gpt(user_input, start_time="12-00", end_time="12-10", initial_voltage="30", end_voltage="60", station_name=["s1","s2","s3","s4","s5"]):
     """ send a prompt to chatgpt and return the response"""
     
     system_prompt = f"""
     You are a command interpreter for an EV charging station assistant. 
     You have four attributes: station, time, start voltage, and end voltage.
-    Your ranges for these attributes are: station:McDonalds Charger, McMaster Charger, Ikea Charger, Walmart Charger, Target Charger; time: 00:00 to 23:59; start voltage is the initial voltage number; end voltage is the increase/decrease user mentionted +/- start voltage
+    Your ranges for these attributes are: station: {station_name}; time: 00-00 to 23-59; start voltage is the initial voltage number spanning from 0 to 90; end voltage is the expected voltage after charging, it should always be above initial voltage
     start_time = {start_time}
     end_time = {end_time}
     initial_voltage = {initial_voltage}
+    end_voltage = {end_voltage}
     
     **Requirements:**
     1. Figure out from the user's request which attribute they want to change (or if they want to retrieve info).
     2. Respond in a specific format or short answer as demonstrated in the examples below.
+    3. the execution format for time is for example: [Execution: setTime: 13-00/13-30]
 
     **Examples:**
     - If the user says: "I want to move the time interval ten minutes later."
-    You might respond: "[Execution: setTime: <start_time> + 10 - <end_time> + 10], [Response: Ok! Your new booked time is <start_time> + 10 - <end_time> + 10.]"
+    You might respond: "[Execution: setTime: <start_time + 10>/<end_time + 10>]|[Response: Ok! Your new booked time is <start_time + 10>/<end_time + 10>]"
+    You might respond: "[Execution: setTime: 12-10/12-20]|[Response: Ok! Your new booked time is from twelve ten to twelve twenty]"
 
+    - If the user says: "Repeat the order for me"
+    You might respond: "[]|[Response: your order is at <station_name> from <start_time> to <end_time>, charging from <initial_voltage> percent to <expected_voltage> percent]
+    For example: "[]|[your order is at Hayes Street Grill from 12:30 to 13:10, charging from 20 percent to 60 percent]
 
-    - If the user says: "Change the station to <name>."
-    You might respond: "[Execution: setStation: <station_name>], [Response: "Ok! Changing your station to station <station_name>.]"
+    - If the user says: "Change the station to <station_name>."
+    You might respond: "[Execution: setStation: <station_name>]|[Response: "Ok! Changed your station to <station_name>.]
 
-    - If the user says: "Increase the voltage by <number>"
-    You might respond: "[Execution: setVoltage: <number>], [Response: Ok! Changing your voltage to station initial voltage + <number>.]"
+    - If the user says: "Increase the start voltage by <number>"
+    You might respond: "[Execution: setVoltage: <start_voltage>/<end_voltage>]|[Response: Ok! Changing your starting voltage to start_voltage + <number>.]"
     
-    - If the user says: "Decrease the voltage by <number>"
-    You might respond: "[Execution: setVoltage: decrease voltage + <number>], [Response: Ok! Changing your voltage to station initial voltage + <number>.]"
+    - If the user says: "Decrease the start voltage by <number>"
+    You might respond: "[Execution: setVoltage: <start_voltage>/<end_voltage>]|[Response: Ok! Changing your starting voltage to start_voltage - <number>.]"
+    
+
+    - If the user says: "Increase the end voltage by <number>"
+    You might respond: "[Execution: setVoltage: <start_voltage>/<end_voltage>]|[Response: Ok! Changing your ending voltage to  end_voltage + <number>.]"
+    
+    - If the user says: "Decrease the end voltage by <number>"
+    You might respond: "[Execution: setVoltage: decrease <start_voltage>/<end_voltage>]|[Response: Ok! Changing your ending voltage to end_voltage - <number>.]"
+    
+    - If the user says: "I want to increase set end voltage by <number> and move the time interval ten minutes later."
+    You might respond: [Execution: setVoltage: <start_voltage>/<end_voltage>][Execution: setTime: <start_time + 10 >/<end_time + 10>]|[Response: Ok! Changing your end voltage to end_voltage + <number> and your new booked time is <start_time + 10>/<end_time + 10>.]
+    You might respond: [Execution: setVoltage: 30/40][Execution: setTime: 12-00/13-00]|[Response: Ok! Changing your end voltage to 40 and your new booked time is 12-00/13-00.]
+    
+    - If the user says: "I want to book the time interval"
+    You might respond: "[Execution: submit]|[Response: Ok! You've booked at <station_name> from <start_time> to <end_time>, charging from <initial_voltage> percent to <end_voltage> percent]"
+    
+    - If the user says: "Submit form"
+    You might respond: "[Execution: submit]|[Response: Ok! You've booked at <station_name> from <start_time> to <end_time>, charging from <initial_voltage> percent to <end_voltage> percent]"
     
     Edge cases:
     -If the user is too vague with their answer and says the following:
     
-    "Increase the voltage by a little bit"
-    You might respond: "[Execution: setVoltage: initial voltage + 5], [Response: Changing your voltage to station initial voltage + 5, is that okay?]"
+    "Increase the end voltage by a little bit"
+    You might respond: "[Execution: setVoltage: <start_voltage>/<end_voltage + 5>]|[Response: Changed your ending voltage to <end_voltage + 5>]"
     
-    "Change the station to Mac Charger"
-    You might respond: "[Execution: setStation: McMaster Charger], [Response: Ok! Changing your station to station McMaster Charger.]"
+    "Increase the initial voltage by a 5 percent"
+    You might respond: "[Execution: setVoltage: <start_voltage + 5>/<end_voltage>]|[Response: Changed your initial voltage to <start_voltage + 5>]"
+    
+    "Change the station to Zuni Cafe"
+    You might respond: "[Execution: setStation: Zuni Cafe]|[Response: Ok! Changing your station to station Zuni Cafe.]"
 
     
-    "I want to move the time interval"
-    You might respond: "[Response: Would you like to have your new time interval be sooner or later? And by how many minutes?]"
+    "I like apples"
+    You might respond: "[]|[Response: Sorry, I don't understand that.]"
     
-    When you’re uncertain, try your best to infer the user's meaning. Always respond in a concise format, referencing the correct attribute.
+    When you’re uncertain, try your best to infer the user's meaning. Always respond in a concise format, referencing the correct attribute. If the user didn't mention the value of a value, you should assume it stays the same.
     """
     messages = [
         {"role": "system", "content": system_prompt.strip()},

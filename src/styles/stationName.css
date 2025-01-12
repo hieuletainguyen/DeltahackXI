@@ -9,15 +9,25 @@
 }
 
 .station-name {
-    font-size: 25px;
-    font-weight: 500;
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-    color: #007aff;
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Playfair Display', 'Times New Roman', Georgia, serif;
+    background: linear-gradient(45deg, #14B8A6, #0D9488);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(20, 184, 166, 0.2);
     padding: 5px;
     flex-grow: 1;
     text-align: center;
     position: relative;
     transition: transform 0.3s ease, opacity 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 80px); /* Account for arrow buttons */
 }
 
 .slide-out-left {
@@ -38,7 +48,7 @@
 
 .arrow-button {
     background-color: transparent;
-    color: #007aff;
+    color: #14B8A6;
     border: none;
     padding: 0;
     cursor: pointer;
@@ -50,10 +60,11 @@
     width: 30px;
     height: 30px;
     position: relative;
+    font-family: 'Old Standard TT', 'Times New Roman', serif;
 }
 
 .arrow-button:hover {
-    color: #005bb5;
+    color: #0D9488;
 }
 
 .arrow-button::before {

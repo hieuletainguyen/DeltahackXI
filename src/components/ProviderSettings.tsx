@@ -125,7 +125,7 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({ onClose, onSubmit, 
                                 color: '#555',
                                 fontSize: '0.9rem'
                             }}>
-                                Power Efficiency (%)
+                                Power Efficiency (W/h)
                             </label>
                             <input
                                 type="number"
