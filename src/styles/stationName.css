@@ -12,6 +12,7 @@
     font-size: 20px;
     font-weight: 500;
     color: #007aff;
+    padding: 5px;
     flex-grow: 1;
     text-align: center;
     position: relative;

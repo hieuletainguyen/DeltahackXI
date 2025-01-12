@@ -58,17 +58,21 @@ export default function Main() {
     }
 
     return (
-        <div className="main-container">
-            <MapComponent stations={dummyStations} onStationSelect={setSelectedStation} />
-            <ChargingStationPanel 
-                stations={dummyStations} 
-                selectedStation={selectedStation} 
-                setSelectedStation={setSelectedStation} 
-                selectedTime={selectedTime} 
-                setSelectedTime={setSelectedTime} 
-                batteryPercentage={batteryPercentage} 
-                setBatteryPercentage={setBatteryPercentage} 
-            />
+        <div className="h-screen flex flex-col">
+            <div className="h-1/2 relative">
+                <MapComponent stations={dummyStations} onStationSelect={setSelectedStation} />
+            </div>
+            <div className="h-1/2 w-full">
+                <ChargingStationPanel 
+                    stations={dummyStations} 
+                    selectedStation={selectedStation} 
+                    setSelectedStation={setSelectedStation} 
+                    selectedTime={selectedTime} 
+                    setSelectedTime={setSelectedTime} 
+                    batteryPercentage={batteryPercentage} 
+                    setBatteryPercentage={setBatteryPercentage} 
+                />
+            </div>
         </div>
     );
 }

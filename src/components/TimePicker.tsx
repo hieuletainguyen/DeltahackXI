@@ -26,25 +26,56 @@ export default function TimePicker({
     const [isIncrementing, setIsIncrementing] = useState<boolean>(true);
 
     const handleChange = (value: number, setter: (value: number) => void, max: number, min: number, key: string, isIncrement: boolean) => {
-        const newValue = isIncrement ? value + 1 : value - 1;
-        if (newValue <= max && newValue >= min) {
-            setIsIncrementing(isIncrement);
-            setAnimatingNumber(key);
-            setTimeout(() => {
-                setter(newValue);
-                setAnimatingNumber(null);
-            }, 200);
+        let newValue;
+        if (key.includes('Minutes')) {
+            newValue = isIncrement ? 
+                value + 10 : 
+                value - 10;
+            if (newValue >= 60) newValue = 0;
+            if (newValue < 0) newValue = 50;
+        } else {
+            newValue = isIncrement ? value + 1 : value - 1;
+            if (newValue > max) newValue = min;
+            if (newValue < min) newValue = max;
         }
+
+        setIsIncrementing(isIncrement);
+        setAnimatingNumber(key);
+        setTimeout(() => {
+            setter(newValue);
+            setAnimatingNumber(null);
+        }, 200);
     };
 
-    const TimeNumber = ({ value, animKey }: { value: number, animKey: string }) => {
+    const handleWheel = (event: React.WheelEvent, value: number, setter: (value: number) => void, max: number, min: number, key: string) => {
+        event.preventDefault();
+        const isScrollingUp = event.deltaY < 0;
+        handleChange(value, setter, max, min, key, isScrollingUp);
+    };
+
+    const TimeNumber = ({ value, animKey, setter, max }: { 
+        value: number, 
+        animKey: string,
+        setter: (value: number) => void,
+        max: number 
+    }) => {
         const isAnimating = animatingNumber === animKey;
-        const nextValue = isIncrementing ? 
-            (value + 1) % (value >= 23 ? 24 : 60) : 
-            (value - 1 + (value >= 23 ? 24 : 60)) % (value >= 23 ? 24 : 60);
+        let nextValue;
+        if (animKey.includes('Minutes')) {
+            nextValue = isIncrementing ? 
+                (value + 10 >= 60 ? 0 : value + 10) : 
+                (value - 10 < 0 ? 50 : value - 10);
+        } else {
+            nextValue = isIncrementing ? 
+                (value + 1) % (value >= 23 ? 24 : 60) : 
+                (value - 1 + (value >= 23 ? 24 : 60)) % (value >= 23 ? 24 : 60);
+        }
         
         return (
-            <div className="number-container">
+            <div 
+                className="number-container"
+                onWheel={(e) => handleWheel(e, value, setter, max, 0, animKey)}
+            >
                 <span className={`time-number ${isAnimating ? (isIncrementing ? 'slide-up-out' : 'slide-down-out') : ''}`}>
                     {value.toString().padStart(2, '0')}
                 </span>
@@ -61,31 +92,15 @@ export default function TimePicker({
         <div className="time-picker-container">
             <div className="time-input-group">
                 <div className="time-unit">
-                    <TimeNumber value={startHours} animKey="startHours" />
-                    <div className="button-group">
-                        <button onClick={() => handleChange(startHours, setStartHours, 23, 0, 'startHours', true)}>+</button>
-                        <button onClick={() => handleChange(startHours, setStartHours, 23, 0, 'startHours', false)}>-</button>
-                    </div>
+                    <TimeNumber value={startHours} animKey="startHours" setter={setStartHours} max={23} />
                     <span>:</span>
-                    <TimeNumber value={startMinutes} animKey="startMinutes" />
-                    <div className="button-group">
-                        <button onClick={() => handleChange(startMinutes, setStartMinutes, 59, 0, 'startMinutes', true)}>+</button>
-                        <button onClick={() => handleChange(startMinutes, setStartMinutes, 59, 0, 'startMinutes', false)}>-</button>
-                    </div>
+                    <TimeNumber value={startMinutes} animKey="startMinutes" setter={setStartMinutes} max={59} />
                 </div>
                 <span className="to-arrow">&#8594;</span>
                 <div className="time-unit">
-                    <TimeNumber value={endHours} animKey="endHours" />
-                    <div className="button-group">
-                        <button onClick={() => handleChange(endHours, setEndHours, 23, 0, 'endHours', true)}>+</button>
-                        <button onClick={() => handleChange(endHours, setEndHours, 23, 0, 'endHours', false)}>-</button>
-                    </div>
+                    <TimeNumber value={endHours} animKey="endHours" setter={setEndHours} max={23} />
                     <span>:</span>
-                    <TimeNumber value={endMinutes} animKey="endMinutes" />
-                    <div className="button-group">
-                        <button onClick={() => handleChange(endMinutes, setEndMinutes, 59, 0, 'endMinutes', true)}>+</button>
-                        <button onClick={() => handleChange(endMinutes, setEndMinutes, 59, 0, 'endMinutes', false)}>-</button>
-                    </div>
+                    <TimeNumber value={endMinutes} animKey="endMinutes" setter={setEndMinutes} max={59} />
                 </div>
             </div>
         </div>
