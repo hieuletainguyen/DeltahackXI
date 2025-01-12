@@ -24,8 +24,8 @@ export default function Main() {
     const [startTime, setStartTime] = useState<TimeSelection>({ hours: 1, minutes: 10 });
     const [endTime, setEndTime] = useState<TimeSelection>({ hours: 1, minutes: 23 });
     const [voltage, setVoltage] = useState<VoltageSelection>({
-        start: 20,
-        target: 40
+        start: 40,
+        target: 80
     });
 
     const handleTimeChange = (newStartTime: TimeSelection | null, newEndTime: TimeSelection | null) => {
@@ -93,10 +93,32 @@ export default function Main() {
 
     const BATTERY_CAPACITY = 100;
 
+    // Calculate price multiplier based on proximity to 5 PM
+    const getPriceMultiplier = (time: TimeSelection): number => {
+        const PEAK_HOUR = 17; // 5 PM
+        const MAX_MULTIPLIER = 1.1;
+        const MIN_MULTIPLIER = 0.9;
+        
+        // Convert current time to minutes from midnight
+        const currentTimeInMinutes = time.hours * 60 + time.minutes;
+        const peakTimeInMinutes = PEAK_HOUR * 60;
+        
+        // Calculate distance from peak time (in minutes)
+        const distanceFromPeak = Math.abs(currentTimeInMinutes - peakTimeInMinutes);
+        const maxDistance = 12 * 60; // 12 hours as max distance
+        
+        // Calculate multiplier - closer to peak means higher multiplier
+        const multiplier = MAX_MULTIPLIER - 
+            ((MAX_MULTIPLIER - MIN_MULTIPLIER) * (distanceFromPeak / maxDistance));
+            
+        return Math.min(MAX_MULTIPLIER, Math.max(MIN_MULTIPLIER, multiplier));
+    };
+
     // Update panelAttributes whenever individual states change
     useEffect(() => {
-        const price = selectedStation ? selectedStation.pricePerWatt * (voltage.target - voltage.start) * BATTERY_CAPACITY : 0;
-        
+        let price = selectedStation ? selectedStation.pricePerWatt * (voltage.target - voltage.start) * BATTERY_CAPACITY : 0;
+        price = price * getPriceMultiplier(startTime);
+
         setPanelAttributes(prev => ({
             ...prev,
             startTime,
@@ -122,8 +144,7 @@ export default function Main() {
     }, [apiResponse]);
 
     useEffect(() => {
-        console.log("selectedStation", selectedStation);
-        console.log("stations", apiResponse);
+
         if (!selectedStation) return;
         if (apiResponse.length < 5) return;
         

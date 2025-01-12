@@ -26,7 +26,7 @@ const calculateDynamicPrice = (watt, usageCount, plannedTime, stationId, basePri
     const timeBasedMultiplier = getHourlyMultiplier(plannedTime, stationId);
     multiplier *= timeBasedMultiplier;
 
-    const pricePerWatt = basePricePerWatt * multiplier * (0.7 + Math.random() * (1.4 - 0.7)) * 0.1;
+    const pricePerWatt = basePricePerWatt * multiplier * (0.7 + Math.random() * (1.4 - 0.7)) * 0.02;
     const totalPrice = watt * pricePerWatt;
 
     return { totalPrice, pricePerWatt, multiplier };
@@ -136,7 +136,7 @@ export const getMap = async (req, res) => {
                 //     text: `${timeMinutes} mins`
                 // }, 
                 start_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000),
-                end_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000 + (desired_battery - current_battery) / provider_data.chargeRate * 60 * 1000),
+                end_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000 + (desired_battery - current_battery) / provider_data.chargeRate * 60 * 8000),
                 // price: {
                 //     totalPrice,
                 //     pricePerWatt,
