@@ -1,0 +1,123 @@
+.time-picker-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    padding: 10px 0;
+}
+
+.time-input-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.time-unit {
+    display: flex;
+    align-items: center;
+    margin: 0 2px;
+}
+
+.number-container {
+    width: 35px;
+    height: 36px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.time-number {
+    font-size: 28px;
+    position: absolute;
+    font-weight: bold;
+    font-family: 'Old Standard TT', 'Times New Roman', serif;
+    background: linear-gradient(45deg, #60A5FA, #3B82F6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+}
+
+/* For incrementing */
+.time-number.slide-up-out {
+    animation: slideUpOut 0.3s ease-out forwards;
+}
+
+.time-number.slide-up-in {
+    animation: slideUpIn 0.3s ease-out;
+}
+
+@keyframes slideUpOut {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideUpIn {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* For decrementing */
+.time-number.slide-down-out {
+    animation: slideDownOut 0.3s ease-out forwards;
+}
+
+.time-number.slide-down-in {
+    animation: slideDownIn 0.3s ease-out;
+}
+
+@keyframes slideDownOut {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideDownIn {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.to-arrow {
+    margin: 0 5px;
+    font-size: 24px;
+    color: #60A5FA;
+    opacity: 0.8;
+    font-family: 'Old Standard TT', 'Times New Roman', serif;
+}
+
+.time-icon {
+    color: #60A5FA;
+    transform: translateY(6px);
+    margin-right: 10px;
+    width: 24px;
+    height: 24px;
+}
+.time-input-group span {
+    font-family: 'Old Standard TT', 'Times New Roman', serif;
+    color: #60A5FA;
+}
+

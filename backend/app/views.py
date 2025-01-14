@@ -19,6 +19,7 @@ class ExecutePipelineView(APIView):
                 {'status': 'error', 'message': str(e)}, 
                 status=status.HTTP_400_BAD_REQUEST
             ) 
+        
 class SignupView(APIView):
     def post(self, request):
         try:
@@ -46,13 +47,18 @@ class SignupView(APIView):
                 'created_at': datetime.now()
             })
 
-            print(email, str(mongo_user.inserted_id))
+            # Create JWT token
+            token = jwt.encode(
+                payload={
+                    'user_id': str(mongo_user.inserted_id),
+                    'exp': datetime.utcnow() + timedelta(days=1)
+                },
+                key=settings.SECRET_KEY,
+                algorithm='HS256'
+            )
+
             return Response({
-                'user': {
-                    'email': email,
-                    'id': str(mongo_user.inserted_id),
-                    'userType': user_type  # Return user type in response
-                }
+                'token': token
             })
 
         except Exception as e:
@@ -81,23 +87,49 @@ class LoginView(APIView):
             
             if not user_data:
                 return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-            # Return user data
             
-            # token = jwt.encode({'user_id': str(user_data['_id']), 'exp': datetime.utcnow() + timedelta(days=1)},
-            #                    'your_secret_key', algorithm='HS256')
+            token = jwt.encode({'user_id': str(user_data['_id']), 
+                                'exp': datetime.utcnow() + timedelta(days=1)},
+                               settings.SECRET_KEY, algorithm='HS256')
 
             return Response({
                 'token': token,
                 'user': {
                     'email': user_data['email'],
-                    'id': str(user_data['_id']),
-                    'password': user_data['password']
-                }
+                    'user_id': str(user_data['_id']),
+                    'isProvider': user_data['userType'] == 'provider'
+                },
+                'success': True
             });
 
         except Exception as e:
             return Response({'error': f"Login failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+class ValidateTokenView(APIView):
+    def post(self, request):
+        token = request.data.get('token')
+        if not token:
+            return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user_id = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            client = MongoClient(settings.MONGODB_URI)
+            db = client.get_database('data')
+            users_collection = db.user
+
+            user_data = users_collection.find_one({'_id': ObjectId(user_id['user_id'])})
+            userdata = {
+                'email': user_data['email'],
+                'user_id': str(user_data['_id']),
+                'isProvider': user_data['userType'] == 'provider'
+            }
+            if not user_data:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'Token is valid', 'user_data': userdata}, status=status.HTTP_200_OK)
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token has expired'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+
 class NewProjectView(APIView):
     def post(self, request):
         try:
