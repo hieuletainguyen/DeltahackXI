@@ -1,5 +1,8 @@
 import dotenv from 'dotenv';
+import { ObjectId } from 'mongodb';
 import client from '../database/mongodb.js';
+import fs from 'fs';
+import path from 'path';
 
 dotenv.config();
 
@@ -53,8 +56,13 @@ export const getMap = async (req, res) => {
         const { lat, lng } = req.query;
         console.log(lat, lng);
         const { current_battery, planned_time, desired_battery } = req.body;
+
+        await client.connect().then(() => {
+            console.log("Connected to MongoDB");
+        }).catch((err) => {
+            console.log(err);
+        });
         
-        // Construct URL with query parameters
         const baseUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
         const params = new URLSearchParams({
             location:  `${lat},${lng}`,
@@ -64,12 +72,10 @@ export const getMap = async (req, res) => {
         });
 
         const url = `${baseUrl}?${params.toString()}`;
-        await client.connect();
         
         const response = await fetch(url);
         const data = await response.json();
         const results = data.results;
-        console.log(results);
         const enrichedResults = await Promise.all(results.map(async (place) => {
             const distance = calculateDistance(
                 parseFloat(lat),
@@ -96,6 +102,7 @@ export const getMap = async (req, res) => {
                 };
 
                 await client.db("data").collection("provider").insertOne(newProviderData);
+                console.log(newProviderData);
                 provider_data = newProviderData;
             }
             const plannedDateTime = new Date(planned_time);
@@ -127,10 +134,10 @@ export const getMap = async (req, res) => {
                 }
             }
             // ================================
-            
+            const randomStartTime = Math.floor(Math.random() * 23);
+            const startTime = new Date(new Date().getTime() + randomStartTime * 60 * 1000);
+            const endTime = new Date(startTime.getTime() + (desired_battery - current_battery) / (provider_data.chargeRate || 5) * 60 * 8000);
             return {
-                // ...place,
-                // ===============Modified=================
                 station: {
                     id: provider_data._id,
                     name: place.name,
@@ -140,22 +147,12 @@ export const getMap = async (req, res) => {
                     },
                     pricePerWatt: pricePerWatt
                 },
-                // ================================
                 distance: {
                     value: distance,
                     text: `${distance.toFixed(1)} km`
                 },
-                // duration: {
-                //     value: timeMinutes * 60, // in seconds
-                //     text: `${timeMinutes} mins`
-                // }, 
-                start_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000),
-                end_time: new Date(new Date().getTime() + timeMinutes * 60 * 1000 + (desired_battery - current_battery) / provider_data.chargeRate * 60 * 8000),
-                // price: {
-                //     totalPrice,
-                //     pricePerWatt,
-                //     multiplier
-                // }
+                start_time: startTime,
+                end_time: endTime,
                 bookedTimes: bookedTimes
             };
         }));
@@ -166,6 +163,11 @@ export const getMap = async (req, res) => {
 
         await client.close();
         console.log(sortedResults);
+        const nameOfTargets = sortedResults.map((item) => item.station.name);
+        const filePath = path.join(process.cwd(), '../python/nearest_stations.json');
+        fs.writeFileSync(filePath, JSON.stringify(nameOfTargets, null, 2), 'utf8');
+        console.log('Response saved to', filePath);
+
         res.json(sortedResults);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -174,33 +176,42 @@ export const getMap = async (req, res) => {
 
 
 export const confirmBooking = async (req, res) => {
-    const { stationId, stationName, username, planned_time } = req.body;
+    const { stationId, username, planned_time, voltage } = req.body;
+    const token = req.headers.authorization;
+    
+    if (!token) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
     await client.connect();
-    if (!stationId || !stationName || !username || !planned_time) {
-        return res.status(400).json({ error: "Invalid request" });
+    if (!stationId || !username || !planned_time || !voltage) {
+        return res.status(400).json({ error: "Invalid request since not all fields are provided" });
     }
 
-    const provider_data = await client.db("data").collection("provider").findOne({ _id: stationId });
+    const provider_data = await client.db("data").collection("provider").findOne({ _id: new ObjectId(stationId) });
     if (!provider_data) {
-        return res.status(400).json({ error: "Invalid request" });
+        return res.status(400).json({ error: "Invalid request since station not found" });
     }
 
-    const station_data_queue = await client.db("data").collection("queue").findOne({ stationId: stationId });
+    const station_data_queue = await client.db("data").collection("queue").findOne({ stationId: new ObjectId(stationId) });
     if (!station_data_queue) {
         return res.status(400).json({ error: "Cannot find station in queue" });
     }
 
-    const plannedDateTime = new Date(planned_time);
+    const plannedDateTime = planned_time.split(':')[0];
+    console.log(plannedDateTime);
     const booking = station_data_queue.queue;
-    if (booking[`${plannedDateTime.getHours()}`].length >= 2) {
+    if (booking[plannedDateTime].length >= 2) {
         return res.status(400).json({ error: "Station is full" });
     }
-    booking[`${plannedDateTime.getHours()}`].push({
+    booking[plannedDateTime].push({
         username: username,
-        planned_time: planned_time
+        planned_time: planned_time,
+        voltage: voltage
     });
-    await client.db("data").collection("queue").updateOne({ stationId: stationId }, { $set: { queue: booking } });
-
+    await client.db("data").collection("queue").updateOne({ stationId: new ObjectId(stationId) }, { $set: { queue: booking } });
+    await client.close();
+    console.log("Booking confirmed");
     res.json({ success: true });
 }
 

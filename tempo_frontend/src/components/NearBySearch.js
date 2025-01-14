@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { GoogleMap, LoadScript, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 
-const NearbyRestaurants = () => {
+const NearBySearch = () => {
   const [coordinates, setCoordinates] = useState({
     lat: 37.7749,
     lng: -122.4194
   });
-  const [restaurants, setRestaurants] = useState([]);
+  const [targets, setTargets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [map, setMap] = useState(null);
   const [zoom, setZoom] = useState(14);
@@ -24,34 +24,33 @@ const NearbyRestaurants = () => {
   };
 
 
-const searchNearbyRestaurants = async () => {
-  try {
-    setLoading(true);
-    setOriginalCoordinates(coordinates);
-    const response = await fetch(
-      `http://localhost:9897/api/places/?lat=${coordinates.lat}&lng=${coordinates.lng}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }, 
-        body: JSON.stringify({
-          current_battery: 30,
-          planned_time: new Date().toISOString(),
-          desired_battery: 80,
-        })
-      }
-    );
-    
-    const data = await response.json();
-    setRestaurants(data);
-    console.log(data);
-  } catch (error) {
-    console.error('Error fetching restaurants:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+  const searchNearby = async () => {
+    try {
+      setLoading(true);
+      setOriginalCoordinates(coordinates);
+      const response = await fetch(
+        `http://localhost:9897/api/places/?lat=${coordinates.lat}&lng=${coordinates.lng}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }, 
+          body: JSON.stringify({
+            current_battery: 30,
+            planned_time: new Date().toISOString(),
+            desired_battery: 80,
+          })
+        }
+      );
+      const data = await response.json();
+      setTargets(data);
+      console.log(data);
+    } catch (error) {
+      console.error('Error fetching restaurants:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLatChange = (e) => {
     setCoordinates(prev => ({
@@ -71,10 +70,10 @@ const searchNearbyRestaurants = async () => {
     setMap(mapInstance);
   };
 
-  const handleRestaurantSelect = (restaurant) => {
+  const handleTargetSelect = (target) => {
     const position = {
-      lat: restaurant.station.location.lat,
-      lng: restaurant.station.location.lng
+      lat: target.station.location.lat,
+      lng: target.station.location.lng
     };
     
     // If directions are showing, clear them and reset to original view
@@ -88,7 +87,7 @@ const searchNearbyRestaurants = async () => {
     
     // If we're already at this position, show route
     if (coordinates.lat === position.lat && coordinates.lng === position.lng) {
-      handleNavigation({ stopPropagation: () => {} }, restaurant);
+      handleNavigation({ stopPropagation: () => {} }, target);
     } else {
       // First click - zoom to restaurant
       setZoom(17);
@@ -117,14 +116,14 @@ const searchNearbyRestaurants = async () => {
     }
   };
 
-  const handleNavigation = (e, restaurant) => {
+  const handleNavigation = (e, target) => {
     e.stopPropagation();
     setRequestMade(false);
     setSelectedRoute({
       origin: originalCoordinates,
       destination: {
-        lat: restaurant.station.location.lat,
-        lng: restaurant.station.location.lng
+        lat: target.station.location.lat,
+        lng: target.station.location.lng
       }
     });
   };
@@ -164,10 +163,10 @@ const searchNearbyRestaurants = async () => {
           step="any"
         />
         <button 
-          onClick={searchNearbyRestaurants}
+          onClick={searchNearby}
           disabled={loading}
         >
-          {loading ? 'Searching...' : 'Search Nearby Restaurants'}
+          {loading ? 'Searching...' : 'Search Nearby Targets'}
         </button>
       </div>
 
@@ -186,14 +185,14 @@ const searchNearbyRestaurants = async () => {
                   url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
                 }}
               />
-              {restaurants.map((restaurant, index) => (
+              {targets.map((target, index) => (
                 <Marker
-                  key={restaurant.place_id}
+                  key={target.place_id}
                   position={{
-                    lat: restaurant.station.location.lat,
-                    lng: restaurant.station.location.lng
+                    lat: target.station.location.lat,
+                    lng: target.station.location.lng
                   }}
-                  title={restaurant.station.name}
+                  title={target.station.name}
                 />
               ))}
             </>
@@ -221,7 +220,7 @@ const searchNearbyRestaurants = async () => {
       </LoadScript>
 
       <div style={{ marginTop: '20px' }}>
-        <h3>Nearby Restaurants:</h3>
+        <h3>Nearby Targets:</h3>
         <div style={{
           display: 'flex',
           overflowX: 'auto',
@@ -230,10 +229,10 @@ const searchNearbyRestaurants = async () => {
           WebkitOverflowScrolling: 'touch', // For smooth scrolling on iOS
           msOverflowStyle: '-ms-autohiding-scrollbar', // For IE/Edge
         }}>
-          {restaurants.map((restaurant) => (
+          {targets.map((target) => (
             <button
-              key={restaurant.place_id}
-              onClick={() => handleRestaurantSelect(restaurant)}
+              key={target.place_id}
+              onClick={() => handleTargetSelect(target)}
               style={{
                 minWidth: '300px', // Fixed width for each card
                 flex: '0 0 auto', // Prevent cards from stretching
@@ -247,12 +246,12 @@ const searchNearbyRestaurants = async () => {
                 height: 'fit-content'
               }}
             >
-              <h4 style={{ margin: '0 0 5px 0' }}>{restaurant.station.name}</h4>
-              {/* <p style={{ margin: '0 0 5px 0' }}>{restaurant.vicinity}</p> */}
-              {/* <p style={{ margin: '0 0 5px 0' }}>{restaurant.duration.text}</p> */}
-              {/* <p style={{ margin: '0 0 5px 0' }}>Price per Watt: {restaurant.price.pricePerWatt}</p> */}
-              <p style={{ margin: '0 0 5px 0' }}>Start time: {restaurant.start_time}</p>
-              <p style={{ margin: '0 0 5px 0' }}>End time: {restaurant.end_time}</p>
+              <h4 style={{ margin: '0 0 5px 0' }}>{target.station.name}</h4>
+              {/* <p style={{ margin: '0 0 5px 0' }}>{target.vicinity}</p> */}
+              {/* <p style={{ margin: '0 0 5px 0' }}>{target.duration.text}</p> */}
+              {/* <p style={{ margin: '0 0 5px 0' }}>Price per Watt: {target.price.pricePerWatt}</p> */}
+              <p style={{ margin: '0 0 5px 0' }}>Start time: {target.start_time}</p>
+              <p style={{ margin: '0 0 5px 0' }}>End time: {target.end_time}</p>
               Show Route
             </button>
           ))}
@@ -262,4 +261,4 @@ const searchNearbyRestaurants = async () => {
   );
 };
 
-export default NearbyRestaurants;
+export default NearBySearch;

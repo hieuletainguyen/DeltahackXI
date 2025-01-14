@@ -5,12 +5,14 @@ import os
 import keyboard
 import time
 from flask import Flask, jsonify
-from flask_cors import CORS  # You'll need to install this: pip install flask-cors
+from dotenv import load_dotenv
+from flask_cors import CORS  
 import json
 global execution_response
 execution_response = "123"
-# openai.api_key = os.getenv("OPENAI_API_KEY")
-openai.api_key = "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"
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 def record_audio_to_file(filename="input.wav"):
     """ record audio from the microphone and save it to a WAV file"""
     try:
@@ -43,7 +45,11 @@ def transcribe_audio(filename):
         raise
 
 
-def chat_with_gpt(user_input, start_time="12:00", end_time="12:10", initial_voltage="30", end_voltage="60", station_name=["s1","s2","s3","s4","s5"]):
+def chat_with_gpt(user_input, start_time="18:00", end_time="19:00", initial_voltage="40", end_voltage="80", station_name=[]):
+    with open('nearest_stations.json', 'r') as json_file:
+        station_name = json.load(json_file)
+        print(station_name)
+
     """ send a prompt to chatgpt and return the response"""
     
     system_prompt = f"""
@@ -58,12 +64,16 @@ def chat_with_gpt(user_input, start_time="12:00", end_time="12:10", initial_volt
     **Requirements:**
     1. Figure out from the user's request which attribute they want to change (or if they want to retrieve info).
     2. Respond in a specific format or short answer as demonstrated in the examples below.
-    3. the execution format for time is for example: [Execution: setTime: 13-00/13-30]
-
+    3. the execution format for time is for example: [Execution: setTime: 18-00/19-00]
+    4. when given a station name, find the closest name to the station name user inputed
+    5. I the response, you should say 7pm instead of 19:00 and 6pm instead of 18:00
     **Examples:**
     - If the user says: "I want to move the time interval ten minutes later."
     You might respond: "[Execution: setTime: <start_time + 10>/<end_time + 10>]|[Response: Ok! Your new booked time is <start_time + 10>/<end_time + 10>]"
     You might respond: "[Execution: setTime: 12-10/12-20]|[Response: Ok! Your new booked time is from twelve ten to twelve twenty]"
+
+    - If the user says: "What's the closest location?"
+    You might respond: "[]|[Response: The closest location is <station_name> from <start_time> to <end_time>, charging you from <initial_voltage> percent to <end_voltage> percent]"
 
     - If the user says: "Repeat the order for me"
     You might respond: "[]|[Response: your order is at <station_name> from <start_time> to <end_time>, charging from <initial_voltage> percent to <expected_voltage> percent]
@@ -72,12 +82,12 @@ def chat_with_gpt(user_input, start_time="12:00", end_time="12:10", initial_volt
     - If the user says: "Change the station to <station_name>."
     You might respond: "[Execution: setStation: <station_name>]|[Response: "Ok! Changed your station to <station_name>.]
 
-    - If the user says: "Increase the start voltage by <number>"
-    You might respond: "[Execution: setVoltage: <start_voltage>/<end_voltage>]|[Response: Ok! Changing your starting voltage to start_voltage + <number>.]"
+    - If the user says: "Change the voltage from <start_voltage> to <end_voltage>"
+    You might respond: "[Execution: setVoltage: <start_voltage>/<end_voltage>]|[Response: Ok! Changing your voltage from <start_voltage> percent to <end_voltage> percent.]"
     
-    - If the user says: "Decrease the start voltage by <number>"
-    You might respond: "[Execution: setVoltage: <start_voltage>/<end_voltage>]|[Response: Ok! Changing your starting voltage to start_voltage - <number>.]"
-    
+    - If the user says: "Change the time from <start_time> to <end_time>"
+    You might respond: "[Execution: setTime: <start_time>/<end_time>]|[Response: Ok! Changing your time from <start_time> to <end_time>.]"
+    For example: "[Execution: setTime: 18-00/19-00]|[Response: Ok! Changing your time from 6 pm to 7 pm.]"
 
     - If the user says: "Increase the end voltage by <number>"
     You might respond: "[Execution: setVoltage: <start_voltage>/<end_voltage>]|[Response: Ok! Changing your ending voltage to  end_voltage + <number>.]"
@@ -85,18 +95,19 @@ def chat_with_gpt(user_input, start_time="12:00", end_time="12:10", initial_volt
     - If the user says: "Decrease the end voltage by <number>"
     You might respond: "[Execution: setVoltage: decrease <start_voltage>/<end_voltage>]|[Response: Ok! Changing your ending voltage to end_voltage - <number>.]"
     
-    - If the user says: "I want to increase set end voltage by <number> and move the time interval ten minutes later."
-    You might respond: [Execution: setVoltage: <start_voltage>/<end_voltage>][Execution: setTime: <start_time + 10 >/<end_time + 10>]|[Response: Ok! Changing your end voltage to end_voltage + <number> and your new booked time is <start_time + 10>/<end_time + 10>.]
-    You might respond: [Execution: setVoltage: 30/40][Execution: setTime: 12-00/13-00]|[Response: Ok! Changing your end voltage to 40 and your new booked time is 12-00/13-00.]
+    - If the user says: "I want to set my voltage from 30 percent to 40 percent and move the time interval ten minutes later."
+    You might respond: [Execution: setVoltage: <start_voltage>/<end_voltage>][Execution: setTime: <start_time plus ten minutes>/<end_time plus ten minutes>]|[Response: Ok! Changing your end voltage to end_voltage + <number> and your new booked time is <start_time plus ten minutes>/<end_time plus ten minutes>.]
+    You might respond: [Execution: setVoltage: 30/40][Execution: setTime: 12-00/13-00]|[Response: Ok! Changing your voltage from 30 to 40 and your new booked time is 12 o clock to13 o clock.]
     
     - If the user says: "I want to book the time interval"
     You might respond: "[Execution: submit]|[Response: Ok! You've booked at <station_name> from <start_time> to <end_time>, charging from <initial_voltage> percent to <end_voltage> percent]"
     
     - If the user says: "Submit form"
     You might respond: "[Execution: submit]|[Response: Ok! You've booked at <station_name> from <start_time> to <end_time>, charging from <initial_voltage> percent to <end_voltage> percent]"
-    
+    For example: "[Execution: submit]|[Response: Ok! You've booked at Esso from 6 pm to 7 pm, charging from 40 percent to 80 percent]"
+
     Edge cases:
-    -If the user is too vague with their answer and says the following:
+    -If the user is too vague with their answer and says the following: 
     
     "Increase the end voltage by a little bit"
     You might respond: "[Execution: setVoltage: <start_voltage>/<end_voltage + 5>]|[Response: Changed your ending voltage to <end_voltage + 5>]"
@@ -182,7 +193,7 @@ def main():
             if delimeter in chat_response:
                 parts = chat_response.split(delimeter, 1)
                 exec_part = parts[0] + "]"
-                response_part = "[Response:" + parts[1]
+                response_part = parts[1]
                 print("Execution Portion:", exec_part)
                 print("Response Portion:", response_part)
                 execution_response = exec_part

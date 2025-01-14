@@ -129,7 +129,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # AUTH_USER_MODEL = 'app.User' # tells django to use the User model defined in models.py instead of django.contrib.auth.models.User
 
 # Add MongoDB settings
-MONGODB_URI = "mongodb+srv://jefflu234:Ljun1216@data.kqqwr.mongodb.net/?retryWrites=true&w=majority&appName=data"
+MONGODB_URI = os.getenv('MONGODB_URI')
 print(MONGODB_URI)
-if not MONGODB_URI:
-    raise ValueError("No MONGODB_URI set in environment variables")
+# if not MONGODB_URI:
+#     raise ValueError("No MONGODB_URI set in environment variables")
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+print(SECRET_KEY)
