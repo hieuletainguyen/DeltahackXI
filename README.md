@@ -180,6 +180,8 @@ Ensure you have the following installed:
 
 <label> Path to the station </label>
 
+</div>
+
 ### Demo Video
 <div align="center">
   
@@ -187,8 +189,6 @@ Ensure you have the following installed:
 </div>
 <p align="center"><em>Click the image above to watch the demo video</em></p>
 
-
-</div>
 
 <h2 align="center"> Tools We Have Used and Learned In This Project</h2>
 <p align="center">
