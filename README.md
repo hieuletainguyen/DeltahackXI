@@ -10,6 +10,8 @@
   - [Installation](#installation)
   - [Running the Application](#running-the-application)
 - [Screenshot and Demo](#screenshot-and-demo)
+  - [Screenshot](#application-screenshot)
+  - [Demo](#demo-video) 
 
 
 ## Introduction
