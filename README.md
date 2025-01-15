@@ -186,6 +186,7 @@ Ensure you have the following installed:
 <div align="center">
   
 [![Watts up demo](http://markdown-videos-api.jorgenkh.no/youtube/guEpEY4YZPY)](https://youtu.be/guEpEY4YZPY)
+
 </div>
 <p align="center"><em>Click the image above to watch the demo video</em></p>
 
@@ -203,11 +204,11 @@ Ensure you have the following installed:
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original.svg" width="45" height="45"/>
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/mongodb/mongodb-original.svg" width="45" height="45"/>
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/flask/flask-original.svg" width="45" height="45"/>
-
+<img src="./assets/openai.svg" width="45" height="45"/>
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/postman/postman-original.svg" width="45" height="45"/>
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-plain-wordmark.svg" width="45" height="45"/>
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-plain-wordmark.svg" width="45" height="45"/>
-<img src="./assets/openai.svg" width="45" height="45"/>
+
 </p>
 
 <div align="center">
