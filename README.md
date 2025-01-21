@@ -1,8 +1,7 @@
 # WATT'S UP
 
 ## Table of Contents
-- [Demo](#screenshot-and-demo)
-  - [Demo](#demo-video) 
+- [Demo](#demo-video) 
 - [Introduction](#introduction)
 - [Features](#features)
 - [Technologies Used](#technologies-used)
