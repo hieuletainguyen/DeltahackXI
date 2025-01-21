@@ -18,12 +18,13 @@
   
 [![Watts up demo](http://markdown-videos-api.jorgenkh.no/youtube/guEpEY4YZPY)](https://youtu.be/guEpEY4YZPY)
 
+<p align="center"><em>Click the image above to watch the demo video</em></p>
+
 <img width="788" alt="Screenshot 2025-01-14 at 10 37 04 AM" src="https://github.com/user-attachments/assets/07b929ca-18d1-4123-b2b7-a69f5414e0f3" />
 
 <label> Result nearest station </label>
 
 </div>
-<p align="center"><em>Click the image above to watch the demo video</em></p>
 ## Introduction
 
 Watts Up is a comprehensive community-driven EV charging network that connects EV owners with private and public charging stations all across the nation. it leverages smart scheduling, dynamic pricing features, voice detection, and AI-driven predictions to optimise charging time, reducing long wait times and enhancing user experience. 
