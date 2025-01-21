@@ -24,6 +24,7 @@
 <label> Result nearest station </label>
 
 </div>
+
 ## Introduction
 
 Watts Up is a comprehensive community-driven EV charging network that connects EV owners with private and public charging stations all across the nation. it leverages smart scheduling, dynamic pricing features, voice detection, and AI-driven predictions to optimise charging time, reducing long wait times and enhancing user experience. 
