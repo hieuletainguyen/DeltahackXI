@@ -1,7 +1,8 @@
 # WATT'S UP
 
 ## Table of Contents
-
+- [Demo](#screenshot-and-demo)
+  - [Demo](#demo-video) 
 - [Introduction](#introduction)
 - [Features](#features)
 - [Technologies Used](#technologies-used)
@@ -9,11 +10,20 @@
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Running the Application](#running-the-application)
-- [Screenshot and Demo](#screenshot-and-demo)
-  - [Screenshot](#application-screenshot)
-  - [Demo](#demo-video) 
+- [More Screenshots]
+  -   - [Screenshot](#application-screenshot)
 
+### Demo Video
+<div align="center">
+  
+[![Watts up demo](http://markdown-videos-api.jorgenkh.no/youtube/guEpEY4YZPY)](https://youtu.be/guEpEY4YZPY)
 
+<img width="788" alt="Screenshot 2025-01-14 at 10 37 04 AM" src="https://github.com/user-attachments/assets/07b929ca-18d1-4123-b2b7-a69f5414e0f3" />
+
+<label> Result nearest station </label>
+
+</div>
+<p align="center"><em>Click the image above to watch the demo video</em></p>
 ## Introduction
 
 Watts Up is a comprehensive community-driven EV charging network that connects EV owners with private and public charging stations all across the nation. it leverages smart scheduling, dynamic pricing features, voice detection, and AI-driven predictions to optimise charging time, reducing long wait times and enhancing user experience. 
@@ -151,7 +161,15 @@ Ensure you have the following installed:
 ### Application Screenshot
 
 <div align="center">
-  
+
+<img width="643" alt="Screenshot 2025-01-14 at 10 37 34 AM" src="https://github.com/user-attachments/assets/967746c9-268d-4d87-bf28-832a5a3cd8b3" />
+
+<label> Path to the station </label>
+
+<img width="788" alt="Screenshot 2025-01-14 at 10 37 04 AM" src="https://github.com/user-attachments/assets/07b929ca-18d1-4123-b2b7-a69f5414e0f3" />
+
+<label> Result nearest station </label>
+
 <img width="587" alt="Screenshot 2025-01-14 at 10 38 09 AM" src="https://github.com/user-attachments/assets/aa9b5655-8bbc-4c1b-9622-136edb957e08" />
 
 <label> Sign up Page </label>
@@ -172,23 +190,10 @@ Ensure you have the following installed:
 
 <label> Scan QR code </label>
 
-<img width="788" alt="Screenshot 2025-01-14 at 10 37 04 AM" src="https://github.com/user-attachments/assets/07b929ca-18d1-4123-b2b7-a69f5414e0f3" />
 
-<label> Result nearest station </label>
 
-<img width="643" alt="Screenshot 2025-01-14 at 10 37 34 AM" src="https://github.com/user-attachments/assets/967746c9-268d-4d87-bf28-832a5a3cd8b3" />
-
-<label> Path to the station </label>
 
 </div>
-
-### Demo Video
-<div align="center">
-  
-[![Watts up demo](http://markdown-videos-api.jorgenkh.no/youtube/guEpEY4YZPY)](https://youtu.be/guEpEY4YZPY)
-
-</div>
-<p align="center"><em>Click the image above to watch the demo video</em></p>
 
 
 <h2 align="center"> Tools We Have Used and Learned In This Project</h2>
